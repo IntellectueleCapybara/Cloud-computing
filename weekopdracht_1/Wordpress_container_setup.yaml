@@ -22,7 +22,7 @@
         memory: 1g  # Hier wordt 1GB geheugen toegewezen
         cpus: 1  # Hier wordt 1 vCPU toegewezen
         volumes:
-          - /path/to/wordpress:/var/www/html
+          - /home/gebruiker/wordpress:/var/www/html
         ports:
           - "80:80"
       loop:
