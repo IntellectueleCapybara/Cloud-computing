@@ -37,7 +37,7 @@
         - "9"
         - "10"
 
-    - name: Limiteer netwerksnelheid van container
+    - name: Limiteer netwerksnelheid van containers
       command: >
         docker exec -it my_wordpress_container_{{ item }}
         /sbin/tc qdisc add dev eth0 root tbf rate 50mbit burst 10kbit latency 50ms
