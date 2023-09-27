@@ -38,9 +38,9 @@
         - "10"
 
     - name: Genereren van SSL-certificaten...
-        command: openssl req -x509 -nodes -newkey rsa:4096 -keyout /path/to/key.pem -out /path/to/cert.pem
+        command: openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/certificaten/key.pem -out /etc/ssl/certificaten/cert.pem
         args:
-          creates: /path/to/cert.pem
+          creates: /etc/ssl/certificaten/
 
     - name: Voeg gebruikers toe aan de containers
       shell: >
