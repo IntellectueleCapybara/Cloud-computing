@@ -19,17 +19,9 @@
   hosts: pm01
   tasks:
     - name: 10 Wordpress Containers aan het maken...
-      docker_container:
-        name: "wordpress_container_{{ item }}"
-        image: wordpress
-        state: started
-        command: --some-command (optioneel)
-        memory: 1g  # Hier wordt 1GB geheugen toegewezen
-        cpus: 1  # Hier wordt 1 vCPU toegewezen
-        volumes:
-          - /home/gebruiker/wordpress:/var/www/html
-        ports:
-          - "80:80"
+      command: docker run -d --name my_wordpress_container_{{ item }} --memory=1g --cpus=1 \
+      --volume /home/gebruiker/wordpress:/var/www/html \
+      --size 30g -p 80:80 wordpress
       loop:
         - "1"
         - "2"
