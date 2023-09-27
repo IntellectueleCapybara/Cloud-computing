@@ -37,7 +37,7 @@
         - "9"
         - "10"
 
-    - name: Genereer SSL-certificaten
+    - name: Genereren van SSL-certificaten...
         command: openssl req -x509 -nodes -newkey rsa:4096 -keyout /path/to/key.pem -out /path/to/cert.pem
         args:
           creates: /path/to/cert.pem
@@ -61,3 +61,26 @@
         - "8"
         - "9"
         - "10"
+
+    - name: firewall-script uitvoeren voor in de containers
+      hosts: pm01
+      tasks:
+        - name: Kopieer firewall-script naar de containers
+          copy:
+            src: /home/geenboom1/ansible_wordpress_project/firewall_script.sh
+            dest: /tmp/firewall_script.sh
+
+        - name: Voer het firewall-script uit
+          command: docker exec -it wordpress_container_{{ item }} /bin/bash -c "/tmp/firewall_script.sh"
+          loop:
+            - "1"
+            - "2"
+            - "3"
+            - "4"
+            - "5"
+            - "6"
+            - "7"
+            - "8"
+            - "9"
+            - "10"
+
