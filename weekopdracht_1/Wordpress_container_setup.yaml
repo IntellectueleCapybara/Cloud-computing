@@ -5,23 +5,26 @@
     - name: Updaten van packets...
       apt:
         update_cache: yes
+
     - name: Installeren van Docker...
       apt:
         name: docker.io
         state: present
-    - name: docker opstarten
+
+    - name: Start Docker-service
       service:
         name: docker
         state: started
-        become: true
 
 - name: Creëeren van de Containers met wordpress...
   hosts: pm01
   tasks:
     - name: 10 Wordpress Containers aan het maken...
-      command: docker run -d --name my_wordpress_container_{{ item }} --memory=1g --cpus=1 \
-      --volume /home/gebruiker/wordpress:/var/www/html \
-      --size 30g -p 80:80 wordpress
+      command: >
+        docker run -d --name my_wordpress_container_{{ item }}
+        --memory=1g --cpus=1
+        --volume /home/gebruiker/wordpress:/var/www/html
+        --size 30g -p 80:80 wordpress
       loop:
         - "1"
         - "2"
@@ -35,24 +38,26 @@
         - "10"
 
     - name: Limiteer netwerksnelheid van container
-      hosts: pm01
-      tasks:
-        - name: Voeg netwerkbeperking toe
-          command: docker exec -it my_wordpress_container_{{ item }} /sbin/tc qdisc add dev eth0 root tbf rate 50mbit burst 10kbit latency 50ms
-          loop:
-            - "1"
-            - "2"
-            - "3"
-            - "4"
-            - "5"
-            - "6"
-            - "7"
-            - "8"
-            - "9"
-            - "10"
+      command: >
+        docker exec -it my_wordpress_container_{{ item }}
+        /sbin/tc qdisc add dev eth0 root tbf rate 50mbit burst 10kbit latency 50ms
+      loop:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+        - "10"
 
     - name: Genereren van SSL-certificaten...
-      command: openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/certificaten/key.pem -out /etc/ssl/certificaten/cert.pem
+      command: >
+        openssl req -x509 -nodes -newkey rsa:4096
+        -keyout /etc/ssl/certificaten/key.pem
+        -out /etc/ssl/certificaten/cert.pem
       args:
         creates: /etc/ssl/certificaten/
 
@@ -97,4 +102,3 @@
             - "8"
             - "9"
             - "10"
-
