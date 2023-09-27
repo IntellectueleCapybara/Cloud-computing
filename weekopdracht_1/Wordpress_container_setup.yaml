@@ -1,0 +1,56 @@
+- name: Installeren van Docker op de cluster...
+  hosts: pm01
+  become: true
+  tasks:
+    - name: Updaten van packets...
+      apt:
+        update_cache: yes
+    - name: Installeren van Docker...
+      apt:
+        name: docker.io
+        state: present
+
+- name: Creëeren van de Containers met wordpress...
+  hosts: pm01
+  tasks:
+    - name: 10 Wordpress Containers aan het maken...
+      docker_container:
+        name: "wordpress_container_{{ item }}"
+        image: wordpress
+        state: started
+      loop:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+        - "10"
+
+    - name: Genereer SSL-certificaten
+        command: openssl req -x509 -nodes -newkey rsa:4096 -keyout /path/to/key.pem -out /path/to/cert.pem
+        args:
+          creates: /path/to/cert.pem
+
+    - name: Voeg gebruikers toe aan de containers
+      shell: >
+        docker exec -it wordpress_container_{{ item }} /bin/bash -c "
+        adduser gebruiker1 &&
+        adduser gebruiker2 &&
+        openssl req -x509 -nodes -newkey rsa:4096 -keyout /home/gebruiker1/key.pem -out /home/gebruiker1/cert.pem &&
+        openssl req -x509 -nodes -newkey rsa:4096 -keyout /home/gebruiker2/key.pem -out /home/gebruiker2/cert.pem
+        "
+      loop:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - "5"
+        - "6"
+        - "7"
+        - "8"
+        - "9"
+        - "10"
