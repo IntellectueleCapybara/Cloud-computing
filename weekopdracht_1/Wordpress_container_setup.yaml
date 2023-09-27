@@ -34,10 +34,27 @@
         - "9"
         - "10"
 
+    - name: Limiteer netwerksnelheid van container
+      hosts: pm01
+      tasks:
+        - name: Voeg netwerkbeperking toe
+          command: docker exec -it my_wordpress_container_{{ item }} /sbin/tc qdisc add dev eth0 root tbf rate 50mbit burst 10kbit latency 50ms
+          loop:
+            - "1"
+            - "2"
+            - "3"
+            - "4"
+            - "5"
+            - "6"
+            - "7"
+            - "8"
+            - "9"
+            - "10"
+
     - name: Genereren van SSL-certificaten...
-        command: openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/certificaten/key.pem -out /etc/ssl/certificaten/cert.pem
-        args:
-          creates: /etc/ssl/certificaten/
+      command: openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/certificaten/key.pem -out /etc/ssl/certificaten/cert.pem
+      args:
+        creates: /etc/ssl/certificaten/
 
     - name: Voeg gebruikers toe aan de containers
       shell: >
