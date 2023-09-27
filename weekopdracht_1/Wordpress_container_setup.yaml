@@ -9,6 +9,11 @@
       apt:
         name: docker.io
         state: present
+    - name: docker opstarten
+      service:
+        name: docker
+        state: started
+        become: true
 
 - name: Creëeren van de Containers met wordpress...
   hosts: pm01
