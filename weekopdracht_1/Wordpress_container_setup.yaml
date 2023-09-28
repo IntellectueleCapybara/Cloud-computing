@@ -46,30 +46,20 @@
         name: docker
         state: started
 
-- name: Creëeren van de Containers met wordpress...
+- name: Creëren van de Containers met WordPress...
   hosts: pm01
   tasks:
-    - name: 10 Wordpress Containers aan het maken...
+    - name: 10 WordPress Containers aan het maken...
       command: >
-        docker run -d --name my_wordpress_container_{{ item }}
+        docker run -d --name wordpress_container_{{ item }}
         --memory=1g --cpus=1
-        --volume /home/gebruiker/wordpress:/var/www/html
-        --storage-opt size=30G -p 80:80 wordpress
-      loop:
-        - "1"
-        - "2"
-        - "3"
-        - "4"
-        - "5"
-        - "6"
-        - "7"
-        - "8"
-        - "9"
-        - "10"
+        --volume /home/gebruiker/wordpress:/var/www/html -p {{ 32767 + item }}:80 wordpress
+      loop: "{{ range(1, 11) | list }}"
+
 
     - name: Limiteer netwerksnelheid van containers
       command: >
-        docker exec -it my_wordpress_container_{{ item }}
+        docker exec -it wordpress_container_{{ item }}
         /sbin/tc qdisc add dev eth0 root tbf rate 50mbit burst 10kbit latency 50ms
       loop:
         - "1"
