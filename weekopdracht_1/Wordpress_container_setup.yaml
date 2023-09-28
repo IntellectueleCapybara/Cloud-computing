@@ -71,7 +71,7 @@
     - name: Installeer Docker SDK voor Python
       pip:
         name: docker
-        executable: "{{ ansible_python_interpreter | default('/usr/bin/python3') }}"
+        state: present
 
     - name: Detecteer het pad naar Python
       command: "which python3"
@@ -92,17 +92,23 @@
           - "{{ 32767 + item }}:80"
       loop: "{{ range(1, 11) | list }}"
 
-
+    - name: Toon bestaande netwerken
+      command: docker network ls -q
+      register: network_list
+      changed_when: false
 
     - name: Creëer een aangepast netwerk
       command: docker network create --driver bridge container_netwerk
+      when: "'container_netwerk' not in network_list.stdout"
+      changed_when: true
 
-    - name: Voeg containers toe aan aangepast netwerk en beperk de bandbreedte
-      command: >
-        docker network connect container_netwerk wordpress_container_{{ item }} &&
-        docker run --rm --net=container_netwerk alpine tc qdisc add dev eth0 root tbf rate 400mbit burst 8mbit latency 50ms
+    - name: Voeg containers toe aan aangepast netwerk
+      command: docker network connect container_netwerk wordpress_container_{{ item }}
       loop: "{{ range(1, 11) | list }}"
 
+    - name: Beperk de bandbreedte van de containers
+      command: >
+        docker run --net=container_netwerk alpine tc qdisc add dev eth0 root tbf rate 400mbit burst 8mbit latency 50ms
 
     - name: Genereren van SSL-certificaten...
       command: >
