@@ -36,11 +36,6 @@
         name: python-apt
         state: present
 
-    - name: Installeren van python
-      apt:
-        name: python
-        state: present
-
     - name: Installeren van Docker...
       apt:
         name: docker.io
