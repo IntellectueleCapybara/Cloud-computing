@@ -37,9 +37,9 @@
         state: present
 
     - name: Installeren van python
-        apt:
-          name: python
-          state: present
+      apt:
+        name: python
+        state: present
 
     - name: Installeren van Docker...
       apt:
