@@ -28,9 +28,9 @@
       apt:
         update_cache: yes
 
-    - name: Installeren van python3-apt
+    - name: Installeren van python3
       apt:
-        name: python3-apt
+        name: python3
         state: present
 
     - name: Installeren van Docker...
