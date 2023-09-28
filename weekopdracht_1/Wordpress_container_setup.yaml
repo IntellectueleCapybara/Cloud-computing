@@ -1,5 +1,8 @@
 - name: subscriptie uitetten
-  hosts: pm01  # Hosts waarop je deze taak wilt uitvoeren
+  hosts:  # Hosts waarop je deze taak wilt uitvoeren
+    - pm01
+    - pm02
+    - pm03
   become: true  # root
   tasks:
     - name: Voeg Proxmox no-subscription repository toe
