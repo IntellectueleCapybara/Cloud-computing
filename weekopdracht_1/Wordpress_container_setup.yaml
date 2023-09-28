@@ -116,7 +116,7 @@
     - name: Controleer of alle containers zijn toegevoegd
       fail:
         msg: "Niet alle containers zijn toegevoegd aan het aangepaste netwerk"
-      when: "'wordpress_container_{{ item }}' not in network_containers"
+      when: 'wordpress_container_{{ item }}' not in network_containers
       with_sequence: start=1 end=10
 
 
