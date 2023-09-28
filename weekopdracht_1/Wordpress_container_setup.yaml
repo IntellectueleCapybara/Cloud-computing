@@ -120,14 +120,12 @@
       with_sequence: start=1 end=10
 
 
-    - name: Download wondershaper image
-      docker_image:
-        name: jadimisc/wondershaper
-        state: present
-
     - name: Beperk de bandbreedte van de containers
       command: >
-        docker run --rm --net=container_netwerk jadimisc/wondershaper -a eth0 -d 400 -u 8
+        tc qdisc add dev eth0 root tbf rate 400mbit burst 8mbit latency 50ms
+      args:
+        executable: /sbin/tc
+
 
     - name: Genereren van SSL-certificaten...
       command: >
