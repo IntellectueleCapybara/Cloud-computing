@@ -13,6 +13,9 @@
           # Proxmox VE pve-no-subscription repository provided by proxmox.com,
           # NOT recommended for production use
           deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription
+          #normalle pakketten van debian
+          deb http://deb.debian.org/debian buster main contrib non-free
+          deb-src http://deb.debian.org/debian buster main contrib non-free
     - name: pve-enterprise repository weghalen
       lineinfile:
         path: /etc/apt/sources.list.d/pve-enterprise.list
@@ -28,10 +31,15 @@
       apt:
         update_cache: yes
 
-    - name: Installeren van python3
+    - name: Installeren van python-apt
       apt:
-        name: python3
+        name: python-apt
         state: present
+
+    - name: Installeren van python
+        apt:
+          name: python
+          state: present
 
     - name: Installeren van Docker...
       apt:
