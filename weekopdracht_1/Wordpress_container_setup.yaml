@@ -92,32 +92,37 @@
           - "{{ 32767 + item }}:80"
       loop: "{{ range(1, 11) | list }}"
 
+    - name: Controleer of het aangepaste netwerk bestaat
+      docker_network_info:
+        name: container_netwerk
+      register: network_info
+
     - name: Creëer een aangepast netwerk
-      command: docker network create --driver bridge container_netwerk
-      failed_when: "'network with name container_netwerk already exists' not in result.stderr"
-      args:
-        warn: no
-      register: result
+      docker_network:
+        name: container_netwerk
+        driver: bridge
+      when: network_info.exists == False
+
+    - name: Controleer of het aangepaste netwerk bestaat
+      command: docker network ls --format '{{ .Name }}'
+      register: network_list
+
+    - name: Controleer of de containers al aan het netwerk zijn toegevoegd
+      docker_network_info:
+        name: container_netwerk
+        containers: "{{ item }}"
+      loop: "{{ range(1, 11) | map('string') | list }}"
+      register: network_info_results
 
     - name: Voeg containers toe aan aangepast netwerk
-      command: docker network connect container_netwerk wordpress_container_{{ item }}
-      loop: "{{ range(1, 11) | list }}"
-      ignore_errors: yes
-      failed_when: false
+      command: docker network connect container_netwerk wordpress_container_{{ item.item }}
+      loop: "{{ network_info_results.results }}"
+      when: not item.changed
 
+      ###controle lijn of alles goed is gegaan
     - name: Controleer of alle containers zijn toegevoegd aan het aangepaste netwerk
       command: docker network inspect container_netwerk
       register: network_inspect
-
-    - name: network inspecten output
-      set_fact:
-        network_containers: "{{ network_inspect.stdout | from_json | json_query('[].Containers[].Name') }}"
-
-    - name: Controleer of alle containers zijn toegevoegd
-      fail:
-        msg: "Niet alle containers zijn toegevoegd aan het aangepaste netwerk"
-      when: 'wordpress_container_{{ item }}' not in network_containers
-      with_sequence: start=1 end=10
 
 
     - name: Beperk de bandbreedte van de containers
