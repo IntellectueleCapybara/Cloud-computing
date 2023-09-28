@@ -54,7 +54,7 @@
         docker run -d --name my_wordpress_container_{{ item }}
         --memory=1g --cpus=1
         --volume /home/gebruiker/wordpress:/var/www/html
-        --size 30g -p 80:80 wordpress
+        --storage-opt size=30G -p 80:80 wordpress
       loop:
         - "1"
         - "2"
