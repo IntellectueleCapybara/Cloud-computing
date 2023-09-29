@@ -149,29 +149,40 @@
     ###
     ### SSL cert
     ###
-    - name: Maak de directory voor SSL-certificaten aan
-        file:
-          path: /etc/ssl/certificaten
-          state: directory
-          mode: '0755'
+    - name: Controleer containers
+      command: docker ps -q
+      register: container_info
 
-    - name: Genereren van SSL-certificaten...
+    - name: Maak de directory voor SSL-certificaten aan
+      file:
+        path: /etc/ssl/certificaten
+        state: directory
+        mode: '0755'
+
+    - name: Genereren van SSL-certificaten
+      become: true
       command: >
-        openssl req -x509 -nodes -newkey rsa:4096
-        -keyout /etc/ssl/certificaten/key.pem
-        -out /etc/ssl/certificaten/cert.pem
+        openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/certificaten/key.pem -out /etc/ssl/certificaten/cert.pem -subj "/C=NL/ST=Groningen/L=Groningen/O=Weekopdracht_1/OU=wordpress_servers/CN=wordpress server/emailAddress=ariodelukker@gmail.com"
       args:
-        creates: /etc/ssl/certificaten/
+        creates: /etc/ssl/certificaten/cert.pem
+
+
+    - name: Kopieer SSL-certificaten naar containers
+      copy:
+        src: /etc/ssl/certificaten/key.pem
+        dest: /home/gebruiker1/key.pem
+        mode: '0644'
+      loop: "{{ range(1, 11) | list }}"
+      when: container_info.stdout_lines | select('match', 'wordpress_container_' ~ item) | list | count > 0
 
     - name: Voeg gebruikers toe aan de containers
       shell: >
-        docker exec -it wordpress_container_{{ item }} /bin/bash -c "
+        docker exec -i wordpress_container_{{ item }} /bin/bash -c "
         adduser gebruiker1 &&
-        adduser gebruiker2 &&
-        openssl req -x509 -nodes -newkey rsa:4096 -keyout /home/gebruiker1/key.pem -out /home/gebruiker1/cert.pem &&
-        openssl req -x509 -nodes -newkey rsa:4096 -keyout /home/gebruiker2/key.pem -out /home/gebruiker2/cert.pem
+        adduser gebruiker2
         "
       loop: "{{ range(1, 11) | list }}"
+      when: container_info.containers[0].Names | select('match', 'wordpress_container_' ~ item) | list | count > 0
 
 - name: firewall-script uitvoeren voor in de containers
   hosts: pm01
