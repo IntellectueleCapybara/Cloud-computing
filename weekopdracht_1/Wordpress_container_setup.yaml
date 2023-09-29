@@ -183,7 +183,6 @@
       loop: "{{ range(1, 11) | list }}"
       when: "'wordpress_container_' ~ item in container_info.stdout_lines"
 
-
     - name: Kopieer SSL-certificaten naar containers
       copy:
         src: /etc/ssl/certificaten/key.pem
@@ -196,14 +195,35 @@
 ### Firewall script runnen
 ###
 
-- name: firewall-script uitvoeren voor in de containers
+- name: Kopieer firewall-script naar de containers
   hosts: pm01
   tasks:
-    - name: Kopieer firewall-script naar de containers
+    - name: Kopieer firewall-script naar de host
       copy:
         src: /home/geenboom1/ansible_wordpress_project/firewall_script.sh
         dest: /tmp/firewall_script.sh
 
-    - name: Voer het firewall-script uit
-      command: docker exec -it wordpress_container_{{ item }} /bin/bash -c "/tmp/firewall_script.sh"
+    - name: Stel uitvoeringsrechten in voor het firewall-script
+      command: chmod +x /tmp/firewall_script.sh
+
+    - name: Kopieer firewall-script naar de containers
+      shell: docker cp /tmp/firewall_script.sh wordpress_container_{{ item }}:/tmp/firewall_script.sh
       loop: "{{ range(1, 11) | list }}"
+      delegate_to: 172.16.39.70 # Delegeer de taak naar het containerhost (.70)
+
+    - name: Voer het firewall-script uit
+      command: docker exec -i wordpress_container_{{ item }} /bin/bash -c "/tmp/firewall_script.sh"
+      loop: "{{ range(1, 11) | list }}"
+
+
+#- name: firewall-script uitvoeren voor in de containers
+#  hosts: pm01
+#  tasks:
+#    - name: Kopieer firewall-script naar de containers
+#      copy:
+#        src: /home/geenboom1/ansible_wordpress_project/firewall_script.sh #dit is de steppingstone
+#        dest: /tmp/firewall_script.sh #dit is ook de steppingstone maar dit moet de container zijn
+#
+#    - name: Voer het firewall-script uit
+#      command: docker exec -it wordpress_container_{{ item }} /bin/bash -c "/tmp/firewall_script.sh"
+#      loop: "{{ range(1, 11) | list }}"
