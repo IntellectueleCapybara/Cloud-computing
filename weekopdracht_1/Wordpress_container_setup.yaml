@@ -24,9 +24,30 @@
         state: present
 
 ###
-### docker installatie
+### shared storage toevoegen
 ###
 
+- name: Voeg CIFS gedeelde opslag toe aan Proxmox
+  hosts: pm01
+  vars_prompt:
+    - name: cifs_password
+      prompt: "Voer het wachtwoord in voor CIFS gedeelde opslag"
+      private: yes
+  tasks:
+    - name: Controleer of CIFS gedeelde opslag al bestaat
+      command: pvesm list cifs
+      register: pvesm_output
+      changed_when: false
+      failed_when: false
+      ignore_errors: yes
+
+    - name: Voer het pvesm commando uit om CIFS gedeelde opslag toe te voegen
+      command: pvesm add cifs shared_storage --server 172.16.0.100 --share 422422 --username student422422 --password "{{ cifs_password }}"
+      when: pvesm_output.stdout.find('shared_storage') == -1
+
+###
+### docker installatie
+###
 - name: Installeren van Docker op de cluster...
   hosts: pm01
   become: true
