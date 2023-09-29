@@ -111,17 +111,21 @@
         driver: bridge
       when: network_info.exists == False
 
-    - name: Controleer of de containers zijn toegevoegd aan het aangepaste netwerk
-      docker_container_info:
-        name: "wordpress_container_{{ item }}"
-        network_name: container_netwerk
-      register: container_info
-      loop: "{{ range(1, 11) | list }}"
+    - name: Bepaal welke containers moeten worden toegevoegd aan het netwerk
+      set_fact:
+        containers_to_add: [ ]
+
+    - name: Controleer of de containers al zijn toegevoegd aan het netwerk
+      shell: docker network inspect container_netwerk -f "{{ item }}"
+      loop: "{{ range(1, 11) | map('regex_replace', '^(.*)$', 'wordpress_container_\\1') | list }}"
+      register: network_inspect
+      failed_when: false
 
     - name: Voeg containers toe aan aangepast netwerk
-      command: docker network connect container_netwerk wordpress_container_{{ item }}
-      loop: "{{ range(1, 11) | list }}"
-      when: network_info.exists == True and not container_info.exists
+      command: docker network connect container_netwerk {{ item }}
+      loop: "{{ containers_to_add }}"
+      when: containers_to_add | length > 0
+
 
       ###controle lijn of alles goed is gegaan
     - name: Controleer of alle containers zijn toegevoegd aan het aangepaste netwerk
