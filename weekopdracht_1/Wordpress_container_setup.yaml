@@ -203,6 +203,11 @@
         src: /home/geenboom1/ansible_wordpress_project/firewall_script.sh
         dest: /tmp/firewall_script.sh
 
+    - name: Zorg ervoor dat ufw is geïnstalleerd in de container
+      command: docker exec -i wordpress_container_{{ item }} /bin/bash -c "apt-get update && apt-get install ufw -y"
+      loop: "{{ range(1, 11) | list }}"
+      delegate_to: 172.16.39.70 # Delegeer de taak naar het containerhost (.70)
+
     - name: Stel uitvoeringsrechten in voor het firewall-script
       command: chmod +x /tmp/firewall_script.sh
 
