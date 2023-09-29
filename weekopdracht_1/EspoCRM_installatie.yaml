@@ -1,0 +1,35 @@
+
+- name: Maak gebruikers en genereer SSH-sleutels
+  hosts: your_servers
+  become: yes
+  vars:
+    users:
+      - username: numbero_uno
+        pubkey_file: numbero_uno.pub
+      - username: numbero_dos
+        pubkey_file: numbero_dos.pub
+
+  tasks:
+    - name: Maak gebruikers aan
+      user:
+        name: "{{ item.username }}"
+        createhome: yes
+      with_items: "{{ users }}"
+
+    - name: Genereer SSH-sleutels
+      openssh_keypair:
+        path: "/home/{{ item.username }}/.ssh/id_rsa"
+        state: present
+      with_items: "{{ users }}"
+      when: not ansible_filesystem.exists("/home/{{ item.username }}/.ssh/id_rsa")
+
+    - name: Voeg publieke sleutels toe aan authorized_keys
+      authorized_key:
+        user: "{{ item.username }}"
+        key: "{{ lookup('file', item.pubkey_file) }}"
+      with_items: "{{ users }}"
+
+
+###
+### EspoCRM installatie
+###
