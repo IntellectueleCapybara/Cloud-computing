@@ -165,6 +165,23 @@
         openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/certificaten/key.pem -out /etc/ssl/certificaten/cert.pem -subj "/C=NL/ST=Groningen/L=Groningen/O=Weekopdracht_1/OU=wordpress_servers/CN=wordpress server/emailAddress=ariodelukker@gmail.com"
       args:
         creates: /etc/ssl/certificaten/cert.pem
+    - name: Debug container_info
+      debug:
+        var: container_info
+
+    - name: Debug loop item
+      debug:
+        var: item
+      loop: "{{ range(1, 11) | list }}"
+
+    - name: Voeg gebruikers toe aan de containers
+      shell: >
+        docker exec -i wordpress_container_{{ item }} /bin/bash -c "
+        adduser gebruiker1 &&
+        adduser gebruiker2
+        "
+      loop: "{{ range(1, 11) | list }}"
+      when: "'wordpress_container_' ~ item in container_info.stdout_lines"
 
 
     - name: Kopieer SSL-certificaten naar containers
@@ -175,14 +192,9 @@
       loop: "{{ range(1, 11) | list }}"
       when: container_info.stdout_lines | select('match', 'wordpress_container_' ~ item) | list | count > 0
 
-    - name: Voeg gebruikers toe aan de containers
-      shell: >
-        docker exec -i wordpress_container_{{ item }} /bin/bash -c "
-        adduser gebruiker1 &&
-        adduser gebruiker2
-        "
-      loop: "{{ range(1, 11) | list }}"
-      when: container_info.containers[0].Names | select('match', 'wordpress_container_' ~ item) | list | count > 0
+###
+### Firewall script runnen
+###
 
 - name: firewall-script uitvoeren voor in de containers
   hosts: pm01
