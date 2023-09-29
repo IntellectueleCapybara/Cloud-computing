@@ -146,12 +146,14 @@
       shell: tc qdisc add dev {{ network_interface.stdout }} root tbf rate 400mbit burst 8mbit latency 50ms
       when: bandwidth_limit_check.rc != 0
 
-
+    ###
+    ### SSL cert
+    ###
     - name: Maak de directory voor SSL-certificaten aan
-      file:
-        path: /etc/ssl/certificaten
-        state: directory
-        mode: '0755'
+        file:
+          path: /etc/ssl/certificaten
+          state: directory
+          mode: '0755'
 
     - name: Genereren van SSL-certificaten...
       command: >
