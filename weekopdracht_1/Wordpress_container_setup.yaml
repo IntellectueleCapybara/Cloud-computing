@@ -183,13 +183,19 @@
       loop: "{{ range(1, 11) | list }}"
       when: "'wordpress_container_' ~ item in container_info.stdout_lines"
 
-    - name: Kopieer SSL-certificaten naar containers
-      copy:
-        src: /etc/ssl/certificaten/key.pem
-        dest: /home/gebruiker1/key.pem
-        mode: '0644'
+    - name: Kopieer SSL-certificaten naar de containers
+      shell: docker cp /etc/ssl/certificaten/cert.pem wordpress_container_{{ item }}:/etc/ssl/cert.pem
       loop: "{{ range(1, 11) | list }}"
       when: container_info.stdout_lines | select('match', 'wordpress_container_' ~ item) | list | count > 0
+
+    - name: Installeer Apache2 SSL-module
+      docker_container:
+        name: wordpress_container_{{ item }}
+        image: wordpress
+        command: /bin/bash -c "apt-get update && apt-get install -y apache2 && a2enmod ssl && service apache2 restart"
+      loop: "{{ range(1, 11) | list }}"
+      when: container_info.stdout_lines | select('match', 'wordpress_container_' ~ item) | list | count > 0
+
 
 ###
 ### Firewall script runnen
