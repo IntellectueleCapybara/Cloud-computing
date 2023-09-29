@@ -138,7 +138,14 @@
       register: network_interface
 
     - name: Beperk de bandbreedte van de containers
-      command: tc qdisc add dev {{ network_interface.stdout }} root tbf rate 400mbit burst 8mbit latency 50ms
+      shell: tc qdisc show dev {{ network_interface.stdout }} | grep -q tbf
+      register: bandwidth_limit_check
+      changed_when: False
+
+    - name: Voeg de bandbreedtebeperking toe als deze nog niet bestaat
+      shell: tc qdisc add dev {{ network_interface.stdout }} root tbf rate 400mbit burst 8mbit latency 50ms
+      when: bandwidth_limit_check.rc != 0
+
 
     - name: Maak de directory voor SSL-certificaten aan
       file:
