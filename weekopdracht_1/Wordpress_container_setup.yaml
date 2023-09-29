@@ -220,15 +220,4 @@
       command: docker exec -i wordpress_container_{{ item }} /bin/bash -c "/tmp/firewall_script.sh"
       loop: "{{ range(1, 11) | list }}"
 
-
-#- name: firewall-script uitvoeren voor in de containers
-#  hosts: pm01
-#  tasks:
-#    - name: Kopieer firewall-script naar de containers
-#      copy:
-#        src: /home/geenboom1/ansible_wordpress_project/firewall_script.sh #dit is de steppingstone
-#        dest: /tmp/firewall_script.sh #dit is ook de steppingstone maar dit moet de container zijn
-#
-#    - name: Voer het firewall-script uit
-#      command: docker exec -it wordpress_container_{{ item }} /bin/bash -c "/tmp/firewall_script.sh"
-#      loop: "{{ range(1, 11) | list }}"
+#alles doet het YEESSSSSSS
