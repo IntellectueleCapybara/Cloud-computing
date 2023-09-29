@@ -23,6 +23,10 @@
         line: '# deb'
         state: present
 
+###
+### docker installatie
+###
+
 - name: Installeren van Docker op de cluster...
   hosts: pm01
   become: true
@@ -92,6 +96,10 @@
           - "{{ 32767 + item }}:80"
       loop: "{{ range(1, 11) | list }}"
 
+    ###
+    ### de wordpress containers zijn aangemaakt
+    ###
+
     - name: Controleer of het aangepaste netwerk bestaat
       docker_network_info:
         name: container_netwerk
@@ -102,10 +110,6 @@
         name: container_netwerk
         driver: bridge
       when: network_info.exists == False
-
-    - name: Controleer of het aangepaste netwerk bestaat
-      command: docker network ls --format '{{ .Name }}'
-      register: network_list
 
     - name: Controleer of de containers al aan het netwerk zijn toegevoegd
       docker_network_info:
