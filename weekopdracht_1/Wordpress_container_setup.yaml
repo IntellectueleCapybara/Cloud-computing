@@ -1,0 +1,231 @@
+- name: subscriptie uitetten
+  hosts:  # Hosts waarop je deze taak wilt uitvoeren
+    - pm01
+    - pm02
+    - pm03
+  become: true  # root
+  tasks:
+    - name: Voeg Proxmox no-subscription repository toe
+      blockinfile:
+        path: /etc/apt/sources.list
+        insertbefore: '## Main'  # toevoegen
+        block: |
+          # Proxmox VE pve-no-subscription repository provided by proxmox.com,
+          # NOT recommended for production use
+          deb http://download.proxmox.com/debian/pve bookworm pve-no-subscription
+          #normalle pakketten van debian
+          deb http://deb.debian.org/debian buster main contrib non-free
+          deb-src http://deb.debian.org/debian buster main contrib non-free
+    - name: pve-enterprise repository weghalen
+      lineinfile:
+        path: /etc/apt/sources.list.d/pve-enterprise.list
+        regexp: '^deb'
+        line: '# deb'
+        state: present
+
+###
+### shared storage toevoegen
+###
+
+- name: Voeg CIFS gedeelde opslag toe aan Proxmox
+  hosts: pm01
+  vars_prompt:
+    - name: cifs_password
+      prompt: "Voer het wachtwoord in voor CIFS gedeelde opslag"
+      private: yes
+  tasks:
+    - name: Controleer of CIFS gedeelde opslag al bestaat
+      command: pvesm list cifs
+      register: pvesm_output
+      changed_when: false
+      failed_when: false
+      ignore_errors: yes
+
+    - name: Voer het pvesm commando uit om CIFS gedeelde opslag toe te voegen
+      command: pvesm add cifs shared_storage --server 172.16.0.100 --share 422422 --username student422422 --password "{{ cifs_password }}"
+      when: pvesm_output.stdout.find('shared_storage') == -1
+
+###
+### docker installatie
+###
+- name: Installeren van Docker op de cluster...
+  hosts: pm01
+  become: true
+  tasks:
+    - name: Updaten van packets...
+      apt:
+        update_cache: yes
+
+    - name: Install Python 3 and pip
+      become: yes
+      become_user: root
+      command: apt install -y python3 python3-pip
+
+    - name: Installeren van Docker...
+      apt:
+        name: docker.io
+        state: present
+
+    - name: Start Docker-service
+      service:
+        name: docker
+        state: started
+- name: Installeer pip
+  hosts: pm01
+  become: true
+
+  tasks:
+    - name: Download get-pip.py
+      get_url:
+        url: https://bootstrap.pypa.io/get-pip.py
+        dest: /tmp/get-pip.py
+
+    - name: Voer get-pip.py uit
+      command: /usr/bin/python3 /tmp/get-pip.py
+
+    - name: Installeer setuptools
+      pip:
+        name: setuptools
+        state: present
+
+- name: Creëren van de Containers met WordPress...
+  hosts: pm01
+  gather_facts: yes
+
+  tasks:
+    - name: Installeer Docker SDK voor Python
+      pip:
+        name: docker
+        state: present
+
+    - name: Detecteer het pad naar Python
+      command: "which python3"
+      register: python_path_result
+
+    - set_fact:
+        ansible_python_interpreter: "{{ python_path_result.stdout }}"
+
+    - name: WordPress Containers aanmaken
+      docker_container:
+        name: "wordpress_container_{{ item }}"
+        image: wordpress
+        memory: 1g
+        cpuset_cpus: "1"
+        volumes:
+          - /home/gebruiker/wordpress:/var/www/html
+        ports:
+          - "{{ 32767 + item }}:80"
+      loop: "{{ range(1, 11) | list }}"
+
+    ###
+    ### de wordpress containers zijn aangemaakt
+    ###
+
+    - name: Controleer of het aangepaste netwerk bestaat
+      docker_network_info:
+        name: container_netwerk
+      register: network_info
+
+    - name: Creëer een aangepast netwerk
+      docker_network:
+        name: container_netwerk
+        driver: bridge
+      when: network_info.exists == False
+
+    - name: Bepaal welke containers moeten worden toegevoegd aan het netwerk
+      set_fact:
+        containers_to_add: [ ]
+
+    - name: Controleer of de containers al zijn toegevoegd aan het netwerk
+      shell: docker network inspect container_netwerk -f "{{ item }}"
+      loop: "{{ range(1, 11) | map('regex_replace', '^(.*)$', 'wordpress_container_\\1') | list }}"
+      register: network_inspect
+      failed_when: false
+
+    - name: Voeg containers toe aan aangepast netwerk
+      command: docker network connect container_netwerk {{ item }}
+      loop: "{{ containers_to_add }}"
+      when: containers_to_add | length > 0
+
+
+      ###controle lijn of alles goed is gegaan
+    - name: Controleer of alle containers zijn toegevoegd aan het aangepaste netwerk
+      command: docker network inspect container_netwerk
+      register: network_inspect
+
+
+    - name: Bepaal netwerkinterface
+      shell: ip -o -4 route show to default | awk '{print $5}'
+      register: network_interface
+
+    - name: Beperk de bandbreedte van de containers
+      shell: tc qdisc show dev {{ network_interface.stdout }} | grep -q tbf
+      register: bandwidth_limit_check
+      changed_when: False
+
+    - name: Voeg de bandbreedtebeperking toe als deze nog niet bestaat
+      shell: tc qdisc add dev {{ network_interface.stdout }} root tbf rate 400mbit burst 8mbit latency 50ms
+      when: bandwidth_limit_check.rc != 0
+
+    ###
+    ### SSL cert
+    ###
+    - name: Controleer containers
+      command: docker ps -q
+      register: container_info
+
+    - name: Maak de directory voor SSL-certificaten aan
+      file:
+        path: /etc/ssl/certificaten
+        state: directory
+        mode: '0755'
+
+    - name: Genereren van SSL-certificaten
+      become: true
+      command: >
+        openssl req -x509 -nodes -newkey rsa:4096 -keyout /etc/ssl/certificaten/key.pem -out /etc/ssl/certificaten/cert.pem -subj "/C=NL/ST=Groningen/L=Groningen/O=Weekopdracht_1/OU=wordpress_servers/CN=wordpress server/emailAddress=ariodelukker@gmail.com"
+      args:
+        creates: /etc/ssl/certificaten/cert.pem
+    - name: Debug container_info
+      debug:
+        var: container_info
+
+    - name: Voeg gebruikers toe aan de containers
+      shell: >
+        docker exec -i wordpress_container_{{ item }} /bin/bash -c "
+        adduser gebruiker1 &&
+        adduser gebruiker2
+        "
+      loop: "{{ range(1, 11) | list }}"
+      when: "'wordpress_container_' ~ item in container_info.stdout_lines"
+
+###
+### Firewall script runnen
+###
+
+- name: Kopieer firewall-script naar de containers
+  hosts: pm01
+  tasks:
+    - name: Kopieer firewall-script naar de host
+      copy:
+        src: /home/geenboom1/ansible_wordpress_project/firewall_script.sh
+        dest: /tmp/firewall_script.sh
+
+    - name: Zorg ervoor dat ufw is geïnstalleerd in de container
+      command: docker exec -i wordpress_container_{{ item }} /bin/bash -c "apt-get update && apt-get install ufw -y"
+      loop: "{{ range(1, 11) | list }}"
+      delegate_to: 172.16.39.70 # Delegeer de taak naar het containerhost (.70)
+
+    - name: Stel uitvoeringsrechten in voor het firewall-script
+      command: chmod +x /tmp/firewall_script.sh
+
+    - name: Kopieer firewall-script naar de containers
+      shell: docker cp /tmp/firewall_script.sh wordpress_container_{{ item }}:/tmp/firewall_script.sh
+      loop: "{{ range(1, 11) | list }}"
+      delegate_to: 172.16.39.70 # Delegeer de taak naar het containerhost (.70)
+
+    - name: Voer het firewall-script uit
+      command: docker exec -i wordpress_container_{{ item }} /bin/bash -c "/tmp/firewall_script.sh"
+      loop: "{{ range(1, 11) | list }}"
+
+#alles doet het YEESSSSSSS
