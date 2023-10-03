@@ -55,7 +55,7 @@
         path: /etc/fstab
         line: "//172.16.0.100/shared_storage /shared_storage cifs username=student422422,password={{ cifs_password }},rw 0 0"
         state: present
-        backrefs: yes
+      when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
 
 
 ###
