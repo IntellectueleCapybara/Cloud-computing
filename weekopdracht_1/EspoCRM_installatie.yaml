@@ -1,7 +1,9 @@
 
 - name: Maak gebruikers en genereer SSH-sleutels
-  hosts: your_servers
-  become: yes
+  hosts:
+    - pm01
+    - pm02
+    - pm03
   vars:
     users:
       - username: numbero_uno
