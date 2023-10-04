@@ -118,6 +118,10 @@
     - set_fact:
         ansible_python_interpreter: "{{ python_path_result.stdout }}"
 
+    - name: Create Docker volumes
+      command: docker volume create --name "wordpress_volume_{{ item }}" --opt type=local --opt device=/mnt/pve/shared_storage --opt o=size=30G
+      loop: "{{ range(1, 11) | list }}"
+
     - name: WordPress Containers aanmaken
       docker_container:
         name: "wordpress_container_{{ item }}"
@@ -125,10 +129,11 @@
         memory: 1g
         cpuset_cpus: "1"
         volumes:
-          - /home/gebruiker/wordpress:/var/www/html
+          - "/var/lib/docker/volumes/wordpress_volume_{{ item }}/_data:/var/www/html" # Koppel het volume aan de container
         ports:
           - "{{ 32767 + item }}:80"
       loop: "{{ range(1, 11) | list }}"
+
 
     ###
     ### de wordpress containers zijn aangemaakt
