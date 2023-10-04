@@ -34,14 +34,8 @@
       prompt: "Voer het wachtwoord in voor CIFS gedeelde opslag"
       private: yes
   tasks:
-    - name: Controleer of CIFS gedeelde opslag al bestaat
-      command: pvesm list cifs
-      register: pvesm_output
-      changed_when: false
-      failed_when: false
-      ignore_errors: yes
 
-    - name: Check if shared_storage exists
+    - name: Controleer of CIFS gedeelde opslag al bestaat
       shell: cat /etc/pve/storage.cfg | grep shared_storage
       register: shared_storage_check
       ignore_errors: yes

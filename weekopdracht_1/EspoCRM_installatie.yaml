@@ -18,12 +18,19 @@
         createhome: yes
       with_items: "{{ users }}"
 
+    - name: Create .ssh directory
+      file:
+        path: "/home/{{ item.username }}/.ssh"
+        state: directory
+      with_items: "{{ users }}"
+
     - name: Genereer SSH-sleutels
       openssh_keypair:
         path: "/home/{{ item.username }}/.ssh/id_rsa"
         state: present
       with_items: "{{ users }}"
-      when: not ansible_filesystem.exists("/home/{{ item.username }}/.ssh/id_rsa")
+
+
 
     - name: Voeg publieke sleutels toe aan authorized_keys
       authorized_key:
