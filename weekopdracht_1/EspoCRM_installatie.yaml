@@ -11,9 +11,9 @@
   vars:
     users:
       - username: numbero_uno
-        pubkey_file: numbero_uno.pub
+        pubkey_file: id_rsa.pub
       - username: numbero_dos
-        pubkey_file: numbero_dos.pub
+        pubkey_file: id_rsa.pub
 
   tasks:
     - name: Maak gebruikers aan
@@ -37,6 +37,20 @@
         state: present
       with_items: "{{ users }}"
 
+    - name: Lees alle publieke sleutels
+      slurp:
+        src: "/home/{{ item.username }}/.ssh/id_rsa.pub"
+      loop: "{{ users }}"
+      register: public_key_data
+
+    - name: Zet de publieke sleutel in een variabele
+      set_fact:
+        public_keys: "{{ public_key_data['content'] | b64decode | string }}"
+
+    - name: Toon de publieke sleutel
+      debug:
+        var: public_keys
+
 
     - name: Verzamel publieke sleutels
       set_fact:
@@ -44,15 +58,13 @@
       with_items: "{{ users }}"
       register: user_public_keys
 
+
     - name: Voeg publieke sleutels toe aan authorized_keys
       authorized_key:
         user: "{{ item.username }}"
-        key: "{{ item.1 }}"
-      with_items: "{{ users }}"
+        key: "{{ item.stdout }}"
+      with_items: "{{ user_public_keys.results }}"
       when: item.username != ansible_user
-
-
-
 
 ###
 ### EspoCRM installatie
