@@ -1,9 +1,13 @@
+###
+### Het aanmaken van de 2 gebrukers +ssh sleutels
+###
 
 - name: Maak gebruikers en genereer SSH-sleutels
   hosts:
     - pm01
     - pm02
     - pm03
+  become: yes
   vars:
     users:
       - username: numbero_uno
@@ -18,10 +22,13 @@
         createhome: yes
       with_items: "{{ users }}"
 
-    - name: Create .ssh directory
+    - name: Zet de rechten van .ssh directory
       file:
         path: "/home/{{ item.username }}/.ssh"
         state: directory
+        owner: "{{ item.username }}"
+        group: "{{ item.username }}"
+        mode: "0700"
       with_items: "{{ users }}"
 
     - name: Genereer SSH-sleutels
@@ -30,11 +37,21 @@
         state: present
       with_items: "{{ users }}"
 
+
+    - name: Verzamel publieke sleutels
+      set_fact:
+        public_keys: "{{ lookup('file', '/home/' + item.username + '/.ssh/' + item.pubkey_file) }}"
+      with_items: "{{ users }}"
+      register: user_public_keys
+
     - name: Voeg publieke sleutels toe aan authorized_keys
       authorized_key:
         user: "{{ item.username }}"
-        key: "{{ lookup('file', item.pubkey_file) }}"
+        key: "{{ item.1 }}"
       with_items: "{{ users }}"
+      when: item.username != ansible_user
+
+
 
 
 ###
