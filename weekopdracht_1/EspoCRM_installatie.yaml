@@ -74,10 +74,10 @@
 
     - name: Voeg publieke sleutels toe aan authorized_keys
       ansible.builtin.lineinfile:
-        path: "/home/{{ item.username }}/.ssh/authorized_keys"
-        line: "{{ item }}"
+        path: "/home/{{ item.0.username }}/.ssh/authorized_keys"
+        line: "{{ item.1 }}"
         create: yes
-      loop: "{{ all_public_keys }}"
+      loop: "{{ users | product(all_public_keys) | list }}"
 
 
 ###
