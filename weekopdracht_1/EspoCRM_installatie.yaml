@@ -43,21 +43,12 @@
       loop: "{{ users }}"
       register: public_key_data
 
-    - name: Zet de publieke sleutel in een variabele
+    - name: Zet de publieke sleutels in een lijst
       set_fact:
-        public_keys: "{{ public_key_data['content'] | b64decode | string }}"
-
-    - name: Toon de publieke sleutel
-      debug:
-        var: public_keys
-
-
-    - name: Verzamel publieke sleutels
-      set_fact:
-        public_keys: "{{ lookup('file', '/home/' + item.username + '/.ssh/' + item.pubkey_file) }}"
-      with_items: "{{ users }}"
-      register: user_public_keys
-
+        public_keys: "{{ public_keys | default([]) + [item.content | b64decode | string] }}"
+      loop: "{{ public_key_data.results }}"
+      vars:
+        public_keys: [ ]
 
     - name: Voeg publieke sleutels toe aan authorized_keys
       authorized_key:
