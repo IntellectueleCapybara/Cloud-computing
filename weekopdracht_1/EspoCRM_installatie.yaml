@@ -42,3 +42,60 @@
 ###
 ### EspoCRM installatie
 ####
+
+
+- name: Automate EspoCRM Deployment
+  hosts: localhost
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: Create VMs on pm01
+      proxmox_kvm:
+        node: pm01
+        vmid: "{{ item.vmid }}"
+        hostname: "{{ item.hostname }}"
+        memory: 2
+        cores: 2
+        net0: virtio,bridge=vmbr0
+        virtio0: local:50
+        onboot: yes
+        ostype: l26 # Ubuntu 20.04 LTS
+      loop:
+        - { vmid: 100, hostname: "espocrm-vm1" }
+
+    - name: Create VMs on pm02
+      proxmox_kvm:
+        node: pm02
+        vmid: "{{ item.vmid }}"
+        hostname: "{{ item.hostname }}"
+        memory: 2
+        cores: 2
+        net0: virtio,bridge=vmbr0
+        virtio0: local:50
+        onboot: yes
+        ostype: l26 # Ubuntu 20.04 LTS
+      loop:
+        - { vmid: 101, hostname: "espocrm-vm2" }
+
+    - name: Create VMs on pm03
+      proxmox_kvm:
+        node: pm03
+        vmid: "{{ item.vmid }}"
+        hostname: "{{ item.hostname }}"
+        memory: 2
+        cores: 2
+        net0: virtio,bridge=vmbr0
+        virtio0: local:50
+        onboot: yes
+        ostype: l26 # Ubuntu 20.04 LTS
+      loop:
+        - { vmid: 102, hostname: "espocrm-vm3" }
+
+
+###
+### de nodes nu toevoegen aan het host bestand en een snapshot maken
+###
+
+
+
