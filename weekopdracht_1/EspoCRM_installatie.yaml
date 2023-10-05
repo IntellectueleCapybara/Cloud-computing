@@ -30,8 +30,6 @@
         state: present
       with_items: "{{ users }}"
 
-
-
     - name: Voeg publieke sleutels toe aan authorized_keys
       authorized_key:
         user: "{{ item.username }}"
@@ -41,7 +39,7 @@
 
 ###
 ### EspoCRM installatie
-####
+###
 
 
 - name: Automate EspoCRM Deployment
@@ -97,5 +95,41 @@
 ### de nodes nu toevoegen aan het host bestand en een snapshot maken
 ###
 
+    - name: Add espocrm_vms to group
+      add_host:
+        name: "{{ item.hostname }}"
+        groups: espocrm_vms
+      loop:
+        - { node: pm01, vmid: 100, hostname: "espocrm-vm1" }
+        - { node: pm02, vmid: 101, hostname: "espocrm-vm2" }
+        - { node: pm03, vmid: 102, hostname: "espocrm-vm3" }
+
+
+
+    - name: Take snapshots
+      hosts: espocrm_vms
+      become: yes
+      community.general.proxmox_kvm_snapshot:
+        node: "{{ item.node }}"
+        vmid: "{{ item.vmid }}"
+        name: "daily_snapshot"
+        state: present
+      loop:
+        - { node: pm01, vmid: 100 }
+        - { node: pm02, vmid: 101 }
+        - { node: pm03, vmid: 102 }
+
+###
+### installeren van espocrm op de vms
+###
+
+    - name: Install espocrm on the VMs
+      hosts: espocrm_vms
+      become: yes
+      shell: |
+        wget https://github.com/espocrm/espocrm-installer/releases/latest/download/install.sh
+        sudo bash install.sh -y --ssl --letsencrypt --domain=cloud-espocrm.com --clean
+      args:
+        chdir: /root #ALLEEN LATEN DRAAIEN ALS ESPOCRM NOG NIET GEINSTALEERD IS!!!
 
 
