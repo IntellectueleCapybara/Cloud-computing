@@ -37,15 +37,14 @@
         state: present
       with_items: "{{ users }}"
 
-    - name: Lees alle publieke sleutels
-      slurp:
-        src: "/home/{{ item.username }}/.ssh/id_rsa.pub"
+    - name: Lees de inhoud van id_rsa.pub
+      ansible.builtin.shell: cat /home/{{ item.username }}/.ssh/id_rsa.pub
       loop: "{{ users }}"
       register: public_key_data
 
     - name: Zet de publieke sleutels in een lijst
       set_fact:
-        public_keys: "{{ public_keys | default([]) + [item.content | b64decode | string] }}"
+        public_keys: "{{ public_keys | default([]) + [item.stdout] }}"
       loop: "{{ public_key_data.results }}"
       vars:
         public_keys: [ ]
