@@ -49,12 +49,36 @@
       vars:
         public_keys: [ ]
 
+    - name: Sla de publieke sleutels op in een bestand
+      copy:
+        content: "{{ public_keys | join('\n') }}"
+        dest: "/home/{{ inventory_hostname }}_public_keys"
+      delegate_to: localhost
+
+    - name: Lees de publieke sleutels uit het bestand
+      ansible.builtin.shell: cat /home/{{ item }}_public_keys
+      register: all_public_key_data
+      loop: "{{ groups['all'] }}"
+      delegate_to: localhost
+
+    - name: Zet alle publieke sleutels in een lijst
+      set_fact:
+        all_public_keys: "{{ all_public_keys | default([]) + [item.stdout] }}"
+      loop: "{{ all_public_key_data.results }}"
+      vars:
+        all_public_keys: [ ]
+
+    - name: Toon de publieke sleutels
+      debug:
+        var: all_public_keys
+
     - name: Voeg publieke sleutels toe aan authorized_keys
-      authorized_key:
-        user: "{{ item.username }}"
-        key: "{{ item.stdout }}"
-      with_items: "{{ user_public_keys.results }}"
-      when: item.username != ansible_user
+      ansible.builtin.lineinfile:
+        path: "/home/{{ item.username }}/.ssh/authorized_keys"
+        line: "{{ item }}"
+        create: yes
+      loop: "{{ all_public_keys }}"
+
 
 ###
 ### EspoCRM installatie
