@@ -36,6 +36,11 @@
         name: proxmoxer
         executable: pip3
 
+    - name: Update community.general collection
+      ansible.builtin.command:
+        cmd: ansible-galaxy collection install community.general --upgrade
+
+
     - name: Create VMs on pm01
       proxmox_kvm:
         api_user: root@pam
