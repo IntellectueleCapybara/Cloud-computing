@@ -24,25 +24,25 @@
         name: "{{ item.hostname }}"
         memory: 2
         cores: 2
-        net0: virtio,bridge=vmbr0
-        virtio0: local:50
+        net: '{"net0":"virtio,bridge=vmbr0"}'
+        virtio: '{"virtio0":"local:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-      loop:
-        - { vmid: 100, hostname: "espocrm-vm1" }
+        loop:
+          - { vmid: 100, hostname: "espocrm-vm1" }
 
     - name: Create VMs on pm02
       proxmox_kvm:
         api_user: 422422@pve
         api_password: "{{ api_password }}"
-        api_host: pm01
+        api_host: pm02
         node: pm02
         vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
         memory: 2
         cores: 2
-        net0: virtio,bridge=vmbr0
-        virtio0: local:50
+        net: '{"net0":"virtio,bridge=vmbr0"}'
+        virtio: '{"virtio0":"local:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
@@ -52,14 +52,14 @@
       proxmox_kvm:
         api_user: 422422@pve
         api_password: "{{ api_password }}"
-        api_host: pm01
+        api_host: pm03
         node: pm03
         vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
         memory: 2
         cores: 2
-        net0: virtio,bridge=vmbr0
-        virtio0: local:50
+        net: '{"net0":"virtio,bridge=vmbr0"}'
+        virtio: '{"virtio0":"local:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
