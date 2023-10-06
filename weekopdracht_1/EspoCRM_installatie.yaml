@@ -8,12 +8,31 @@
   gather_facts: no
   become: yes
 
+  vars:
+    pm01: 172.16.39.70
+    pm02: 172.16.39.71
+    pm03: 172.16.39.72
+
   vars_prompt:
     - name: "api_password"
       prompt: "Enter the Proxmox API password"
       private: yes
 
   tasks:
+    - name: Updaten van packets...
+      apt:
+        update_cache: yes
+
+    - name: Install Python 3 and pip
+      become: yes
+      become_user: root
+      command: apt install -y python3 python3-pip
+
+    - name: Install proxmoxer
+      ansible.builtin.pip:
+        name: proxmoxer
+        executable: pip3
+
     - name: Create VMs on pm01
       proxmox_kvm:
         api_user: 422422@pve
@@ -28,8 +47,8 @@
         virtio: '{"virtio0":"local:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-        loop:
-          - { vmid: 100, hostname: "espocrm-vm1" }
+      loop:
+        - { vmid: 100, hostname: "espocrm-vm1" }
 
     - name: Create VMs on pm02
       proxmox_kvm:
