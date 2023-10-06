@@ -16,7 +16,7 @@
   tasks:
     - name: Create VMs on pm01
       proxmox_kvm:
-        api_user: root@pam
+        api_user: 422422@pve
         api_password: "{{ api_password }}"
         api_host: pm01
         node: pm01
@@ -33,7 +33,7 @@
 
     - name: Create VMs on pm02
       proxmox_kvm:
-        api_user: root@pam
+        api_user: 422422@pve
         api_password: "{{ api_password }}"
         api_host: pm01
         node: pm02
@@ -50,7 +50,7 @@
 
     - name: Create VMs on pm03
       proxmox_kvm:
-        api_user: root@pam
+        api_user: 422422@pve
         api_password: "{{ api_password }}"
         api_host: pm01
         node: pm03
