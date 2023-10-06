@@ -184,13 +184,23 @@
 ### installeren van espocrm op de vms
 ###
 
+    - name: Check if EspoCRM is installed
+      stat:
+        path: /path/to/espocrm
+      register: espocrm_dir
+
     - name: Install espocrm on the VMs
-      hosts: espocrm_vms
-      become: yes
       shell: |
         wget https://github.com/espocrm/espocrm-installer/releases/latest/download/install.sh
         sudo bash install.sh -y --ssl --letsencrypt --domain=cloud-espocrm.com --clean
       args:
-        chdir: /root #ALLEEN LATEN DRAAIEN ALS ESPOCRM NOG NIET GEINSTALEERD IS!!!
+        chdir: /root
+      register: espocrm_install
+      when: not espocrm_dir.stat.exists
+
+    - debug:
+        var: espocrm_install.stdout_lines
+
+
 
 
