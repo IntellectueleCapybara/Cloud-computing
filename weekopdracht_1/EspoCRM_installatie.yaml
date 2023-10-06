@@ -8,10 +8,13 @@
   gather_facts: no
   become: yes
 
-  vars:
+  vars: #verander dit als je andere IPs hebt en andere nodenamen
     pm01: 172.16.39.70
     pm02: 172.16.39.71
     pm03: 172.16.39.72
+    node1: geenboom2
+    node2: geenboom3
+    node3: geenboom4
 
   vars_prompt:
     - name: "api_password"
@@ -35,10 +38,10 @@
 
     - name: Create VMs on pm01
       proxmox_kvm:
-        api_user: 422422@pve
+        api_user: root@pam
         api_password: "{{ api_password }}"
         api_host: "{{ pm01 }}"
-        node: "{{ pm01 }}"
+        node: "{{ node1 }}"
         vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
         memory: 2
@@ -52,10 +55,10 @@
 
     - name: Create VMs on pm02
       proxmox_kvm:
-        api_user: 422422@pve
+        api_user: root@pam
         api_password: "{{ api_password }}"
         api_host: "{{ pm02 }}"
-        node: "{{ pm02 }}"
+        node: "{{ node2 }}"
         vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
         memory: 2
@@ -69,10 +72,10 @@
 
     - name: Create VMs on pm03
       proxmox_kvm:
-        api_user: 422422@pve
+        api_user: root@pam
         api_password: "{{ api_password }}"
         api_host: "{{ pm03 }}"
-        node: "{{ pm03 }}"
+        node: "{{ node3 }}"
         vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
         memory: 2
