@@ -37,8 +37,8 @@
       proxmox_kvm:
         api_user: 422422@pve
         api_password: "{{ api_password }}"
-        api_host: pm01
-        node: pm01
+        api_host: "{{ pm01 }}"
+        node: "{{ pm01 }}"
         vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
         memory: 2
@@ -54,8 +54,8 @@
       proxmox_kvm:
         api_user: 422422@pve
         api_password: "{{ api_password }}"
-        api_host: pm02
-        node: pm02
+        api_host: "{{ pm02 }}"
+        node: "{{ pm02 }}"
         vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
         memory: 2
@@ -71,8 +71,8 @@
       proxmox_kvm:
         api_user: 422422@pve
         api_password: "{{ api_password }}"
-        api_host: pm03
-        node: pm03
+        api_host: "{{ pm03 }}"
+        node: "{{ pm03 }}"
         vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
         memory: 2
