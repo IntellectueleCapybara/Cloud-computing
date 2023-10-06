@@ -165,21 +165,33 @@
         - { node: pm02, vmid: 101, hostname: "espocrm-vm2" }
         - { node: pm03, vmid: 102, hostname: "espocrm-vm3" }
 
+- name: Create snapshot script on Proxmox hosts
+  hosts: pm01,pm02,pm03
+  become: yes
+  tasks:
+    - name: Create snapshot script
+      copy:
+        dest: "/root/snapshot_vms.sh"
+        content: |
+          #!/bin/bash
+          for vmid in 100 101 102; do
+            pct snapshot $vmid daily_snapshot
+          done
+        mode: 0755
+
+    - name: Create cron job for snapshotting VMs twice a day
+      cron:
+        name: "snapshot job"
+        minute: "0"
+        hour: "*/12"
+        job: "/root/snapshot_vms.sh"
 
 
-    - name: Take snapshots
-      hosts: espocrm_vms
-      become: yes
-      community.general.proxmox_kvm_snapshot:
-        node: "{{ item.node }}"
-        vmid: "{{ item.vmid }}"
-        name: "daily_snapshot"
-        state: present
-      loop:
-        - { node: pm01, vmid: 100 }
-        - { node: pm02, vmid: 101 }
-        - { node: pm03, vmid: 102 }
+- name: EspoCRM VMs instellen
+  hosts: espocrm_vms
+  become: yes
 
+  tasks:
 ###
 ### installeren van espocrm op de vms
 ###
