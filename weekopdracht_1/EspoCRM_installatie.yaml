@@ -79,7 +79,25 @@
         create: yes
       loop: "{{ users | product(all_public_keys) | list }}"
 
-
+#### NOG eeentje toevoegen die alle kan ik dit nu ook aan alle users toevoegen.
+###ik wil dat de root public keys van pm01 pm02 en pm03 ook toegevoegd worden aan
+### beide users numbero_uno en numbero_dos op  pm01 pm02 en pm03
+#iets zoals dit:
+#
+#
+#  - name: Verzamel de publieke sleutels van root op alle hosts
+#    fetch:
+#      src: "/root/.ssh/id_rsa.pub"
+#      dest: "/tmp/{{ inventory_hostname }}_root_id_rsa.pub"
+#      flat: yes
+#
+#  - name: Voeg root publieke sleutels toe aan authorized_keys van elke gebruiker
+#    ansible.builtin.lineinfile:
+#      path: "/home/{{ item.0.username }}/.ssh/authorized_keys"
+#      line: "{{ lookup('file', '/tmp/' + item.1 + '_root_id_rsa.pub') }}"
+#      create: yes
+#    loop: "{{ users | product(inventory_hostname) | list }}"
+#
 ###
 ### EspoCRM installatie
 ###
