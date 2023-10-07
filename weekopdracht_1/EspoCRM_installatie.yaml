@@ -31,14 +31,16 @@
       become_user: root
       command: apt install -y python3 python3-pip
 
-    - name: Install proxmoxer
+    - name: Installeer proxmoxer en requests met pip
       ansible.builtin.pip:
-        name: proxmoxer
+        name:
+          - proxmoxer
+          - requests
         executable: pip3
 
-    - name: Update community.general collection
+    - name: installeren van community.general collectie
       ansible.builtin.command:
-        cmd: ansible-galaxy collection install community.general --upgrade
+        cmd: ansible-galaxy collection install community.general
 
 
     - name: Create VMs on pm01
