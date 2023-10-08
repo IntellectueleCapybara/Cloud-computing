@@ -2,6 +2,33 @@
 ### EspoCRM installatie
 ###
 
+- name: Voeg CIFS gedeelde opslag toe aan Proxmox
+  hosts:
+    - pm01
+    - pm02
+    - pm03
+  vars_prompt:
+    - name: cifs_password
+      prompt: "Voer het wachtwoord in voor CIFS gedeelde opslag"
+      private: yes
+  tasks:
+
+    - name: Controleer of CIFS gedeelde opslag al bestaat
+      shell: cat /etc/pve/storage.cfg | grep shared_storage
+      register: shared_storage_check
+      ignore_errors: yes
+
+    - name: Voer het pvesm commando uit om CIFS gedeelde opslag toe te voegen
+      command: pvesm add cifs shared_storage --server 172.16.0.100 --share 422422 --username student422422 --password "{{ cifs_password }}"
+      when: shared_storage_check.stdout == ""
+
+    - name: Add entry to /etc/fstab for shared storage
+      lineinfile:
+        path: /etc/fstab
+        line: "//172.16.0.100/shared_storage /shared_storage cifs username=student422422,password={{ cifs_password }},rw 0 0"
+        state: present
+      when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
+
 
 - name: Automate EspoCRM Deployment
   hosts: localhost
@@ -54,6 +81,7 @@
 ###
 ###EspoCRM VMs aanmaken met disk 50G/2 proc/2GB mem
 ###
+
     - name: Create VMs on pm01
       proxmox_kvm:
         api_user: root@pam
@@ -65,7 +93,7 @@
         memory: 2048
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
-        virtio: '{"virtio0":"local-lvm:50"}'
+        virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
@@ -82,7 +110,7 @@
         memory: 2048
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
-        virtio: '{"virtio0":"local-lvm:50"}'
+        virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
@@ -99,11 +127,29 @@
         memory: 2048
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
-        virtio: '{"virtio0":"local-lvm:50"}'
+        virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
         - { vmid: 102, hostname: "espocrm-vm3" }
+
+###
+### de VMs starten
+###
+    - name: Start VM on pm01
+      command: qm start 100
+      vars:
+        api_host: pm01
+
+    - name: Start VM on pm02
+      command: qm start 101
+      vars:
+        api_host: pm02
+
+    - name: Start VM on pm03
+      command: qm start 102
+      vars:
+        api_host: pm03
 
 
 
@@ -122,7 +168,7 @@
 
 
 ###
-### . Twee keer per dag moet er een snapshot van de VM worden gemaakt.
+### Twee keer per dag moet er een snapshot van de VM worden gemaakt.
 ###
 
 - name: Create snapshot script on Proxmox hosts
@@ -152,6 +198,7 @@
   become: yes
 
   tasks:
+
 ###
 ### installeren van espocrm op de vms
 ###
