@@ -29,6 +29,12 @@
         state: present
       when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
 
+    - name: Create directory
+      file:
+        path: "/root/iso"
+        state: directory
+        mode: '0755'
+
     ###
     ### iso downloaden en op cdrom mounten
     ###
@@ -39,14 +45,15 @@
         dest: "/root/iso/ubuntu-22.04.iso"
         mode: '0444'
 
-    - name: Create directory
-      file:
-        path: /mnt/cdrom
-        state: directory
-        mode: '0755'
+    - name: Check if /mnt/cdrom is already mounted
+      command: mountpoint -q /mnt/cdrom
+      register: is_mounted
+      ignore_errors: yes
 
     - name: Mount ISO
       command: mount -o loop /root/iso/ubuntu-22.04.iso /mnt/cdrom
+      when: is_mounted.rc != 0
+
 
 
 
@@ -123,18 +130,6 @@
       loop:
         - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
 
-    - name: Add cdrom to VM
-      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
-      delegate_to: pm01
-      loop:
-        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
-
-    - name: Set bootdisk to cdrom
-      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
-      delegate_to: pm01
-      loop:
-        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
-
     ###
     ### PM02
     ###
@@ -157,18 +152,6 @@
       loop:
         - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
 
-    - name: Add cdrom to VM
-      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
-      delegate_to: pm02
-      loop:
-        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
-
-    - name: Set bootdisk to cdrom
-      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
-      delegate_to: pm02
-      loop:
-        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
-        -
     ###
     ### PM03
     ###
@@ -191,17 +174,49 @@
       loop:
         - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
+
+###
+### iso toevoegen aan vm
+###
+
+- name: iso toevoegen aan vm
+  hosts:
+    - pm01
+    - pm02
+    - pm03
+  tasks:
+
     - name: Add cdrom to VM
       command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
-      delegate_to: pm03
       loop:
-        - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
+        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
 
     - name: Set bootdisk to cdrom
       command: qm set {{ item.vmid }} -boot c -bootdisk ide2
-      delegate_to: pm03
       loop:
-        - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
+        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
+
+    - name: Add cdrom to VM
+      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
+      loop:
+        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
+
+    - name: Set bootdisk to cdrom
+      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
+      loop:
+        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
+
+    - name: Add cdrom to VM
+      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
+      delegate_to: "{{ pm03 }}"
+      loop:
+        - { vmid: 103, hostname: "espocrmvm3", ip: "172.16.39.103" }
+
+    - name: Set bootdisk to cdrom
+      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
+      delegate_to: "{{ pm03 }}"
+      loop:
+        - { vmid: 103, hostname: "espocrmvm3", ip: "172.16.39.103" }
 
 ###
 ### espocrm_vms groep aanmaken
@@ -343,6 +358,9 @@
         minute: "0"
         hour: "*/12"
         job: "/root/snapshot_vms.sh"
+
+    - name: monitor server toevoegen
+      shell: wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token _ExXqLL6xuhgP-in2_scLbHnb9CpJhFWdyRDv0_9va-y0oDh_7C1nIzPYKTrswU_jjBaTVyw3uDv9HZEOwJDLAr3GPN77vDROxZRyTiTpenkwEiBZSb_BoNBOp9iFXMdPljhxvY --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001 --claim-url https://app.netdata.cloud
 
 
 - name: EspoCRM VMs instellen
