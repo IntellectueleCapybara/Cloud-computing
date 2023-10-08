@@ -92,23 +92,13 @@
         name: "{{ item.hostname }}"
         memory: 2048
         cores: 2
-        net: '{"net0":"virtio,bridge=vmbr0"}'
+        net: '{"net0":"virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
-        - { vmid: 100, hostname: "espocrm-vm1" }
+        - { vmid: 100, hostname: "espocrm-vm1", ip: "172.16.39.100" }
 
-    - name: Add static IP to VMs on pm01
-      proxmox_kvm:
-        api_user: root@pam
-        api_password: "{{ api_password }}"
-        api_host: "{{ pm01 }}"
-        node: "{{ node1 }}"
-        vmid: "{{ item.vmid }}"
-        netif: '{"net0":"virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"}'
-      loop:
-        - { vmid: 100, ip: "172.16.39.100" }
 
     - name: Create VMs on pm02
       proxmox_kvm:
@@ -120,23 +110,12 @@
         name: "{{ item.hostname }}"
         memory: 2048
         cores: 2
-        net: '{"net0":"virtio,bridge=vmbr0"}'
+        net: '{"net0":"virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
-        - { vmid: 101, hostname: "espocrm-vm2" }
-
-    - name: Add static IP to VMs on pm01
-      proxmox_kvm:
-        api_user: root@pam
-        api_password: "{{ api_password }}"
-        api_host: "{{ pm02 }}"
-        node: "{{ node2 }}"
-        vmid: "{{ item.vmid }}"
-        netif: '{"net0":"virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"}'
-      loop:
-        - { vmid: 101, ip: "172.16.39.101" }
+        - { vmid: 101, hostname: "espocrm-vm2", ip: "172.16.39.101" }
 
     - name: Create VMs on pm03
       proxmox_kvm:
@@ -148,23 +127,29 @@
         name: "{{ item.hostname }}"
         memory: 2048
         cores: 2
-        net: '{"net0":"virtio,bridge=vmbr0"}'
+        net: '{"net0":"virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
-        - { vmid: 102, hostname: "espocrm-vm3" }
+        - { vmid: 102, hostname: "espocrm-vm3", ip: "172.16.39.102" }
 
-    - name: Add static IP to VMs on pm01
-      proxmox_kvm:
-        api_user: root@pam
-        api_password: "{{ api_password }}"
-        api_host: "{{ pm03 }}"
-        node: "{{ node3 }}"
+
+###
+### espocrm_vms groep aanmaken
+###
+
+    - name: Add espocrm_vms to group
+      add_host:
+        name: "{{ item.hostname }}"
+        groups: espocrm_vms
+        node: "{{ item.node }}"
         vmid: "{{ item.vmid }}"
-        netif: '{"net0":"virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"}'
       loop:
-        - { vmid: 102, ip: "172.16.39.102" }
+        - { node: "pm01", vmid: 100, hostname: "espocrm-vm1", ip: "172.16.39.101" }
+        - { node: "pm02", vmid: 101, hostname: "espocrm-vm2", ip: "172.16.39.102" }
+        - { node: "pm03", vmid: 102, hostname: "espocrm-vm3", ip: "172.16.39.103" }
+
 
 ###
 ### de VMs starten
@@ -240,20 +225,6 @@
         - "espocrm-vm1"
         - "espocrm-vm2"
         - "espocrm-vm3"
-
-
-###
-### de nodes nu toevoegen aan het host bestand
-###
-
-    - name: Add espocrm_vms to group
-      add_host:
-        name: "{{ item.hostname }}"
-        groups: espocrm_vms
-      loop:
-        - { node: pm01, vmid: 100, hostname: "espocrm-vm1" }
-        - { node: pm02, vmid: 101, hostname: "espocrm-vm2" }
-        - { node: pm03, vmid: 102, hostname: "espocrm-vm3" }
 
 
 ###
