@@ -29,12 +29,6 @@
         state: present
       when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
 
-    - name: Create directory
-      file:
-        path: "/root/iso"
-        state: directory
-        mode: '0755'
-
     ###
     ### iso downloaden en op cdrom mounten
     ###
@@ -131,11 +125,13 @@
 
     - name: Add cdrom to VM
       command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
+      delegate_to: pm01
       loop:
         - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
 
     - name: Set bootdisk to cdrom
       command: qm set {{ item.vmid }} -boot c -bootdisk ide2
+      delegate_to: pm01
       loop:
         - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
 
@@ -163,11 +159,13 @@
 
     - name: Add cdrom to VM
       command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
+      delegate_to: pm02
       loop:
         - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
 
     - name: Set bootdisk to cdrom
       command: qm set {{ item.vmid }} -boot c -bootdisk ide2
+      delegate_to: pm02
       loop:
         - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
         -
@@ -195,11 +193,13 @@
 
     - name: Add cdrom to VM
       command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
+      delegate_to: pm03
       loop:
         - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
     - name: Set bootdisk to cdrom
       command: qm set {{ item.vmid }} -boot c -bootdisk ide2
+      delegate_to: pm03
       loop:
         - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
@@ -233,21 +233,21 @@
 ###
 ### de VMs starten
 ###
-- name: Create snapshot script on Proxmox 1
+- name: VM starten op Proxmox 1
   hosts: pm01
   become: yes
   tasks:
     - name: Start VM on pm01
       shell: "qm status 100 | grep -q 'status: running' || qm start 100"
 
-- name: Create snapshot script on Proxmox 2
+- name: VM starten op Proxmox 2
   hosts: pm02
   become: yes
   tasks:
     - name: Start VM on pm02
       shell: "qm status 101 | grep -q 'status: running' || qm start 101"
 
-- name: Create snapshot script on Proxmox 3
+- name: VM starten op Proxmox 3
   hosts: pm03
   become: yes
   tasks:
