@@ -99,12 +99,6 @@
       loop:
         - { vmid: 100, hostname: "espocrm-vm1" }
 
-    - name: Add static IP to VMs on pm01
-      command:
-        cmd: "pct set {{ item.vmid }} -net0 virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"
-      loop:
-        - { vmid: 100, ip: "172.16.39.100" }
-
     - name: Create VMs on pm02
       proxmox_kvm:
         api_user: root@pam
@@ -121,12 +115,6 @@
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
         - { vmid: 101, hostname: "espocrm-vm2" }
-
-    - name: Add static IP to VMs on pm01
-      command:
-        cmd: "pct set {{ item.vmid }} -net0 virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"
-      loop:
-        - { vmid: 101, ip: "172.16.39.101" }
 
     - name: Create VMs on pm03
       proxmox_kvm:
@@ -145,11 +133,6 @@
       loop:
         - { vmid: 102, hostname: "espocrm-vm3" }
 
-    - name: Add static IP to VMs on pm01
-      command:
-        cmd: "pct set {{ item.vmid }} -net0 virtio,bridge=vmbr0,ip={{ item.ip }}/24,gw=172.16.0.1"
-      loop:
-        - { vmid: 102, ip: "172.16.39.102" }
 
 ###
 ### espocrm_vms groep aanmaken
@@ -162,30 +145,26 @@
         node: "{{ item.node }}"
         vmid: "{{ item.vmid }}"
       loop:
-        - { node: "pm01", vmid: 100, hostname: "espocrm-vm1", ip: "172.16.39.101" }
-        - { node: "pm02", vmid: 101, hostname: "espocrm-vm2", ip: "172.16.39.102" }
-        - { node: "pm03", vmid: 102, hostname: "espocrm-vm3", ip: "172.16.39.103" }
+        - { node: "pm01", vmid: 100, hostname: "espocrm-vm1" }
+        - { node: "pm02", vmid: 101, hostname: "espocrm-vm2" }
+        - { node: "pm03", vmid: 102, hostname: "espocrm-vm3" }
 
 
 ###
 ### de VMs starten
 ###
+
     - name: Start VM on pm01
       command: qm start 100
-      vars:
-        api_host: pm01
+      delegate_to: pm01
 
     - name: Start VM on pm02
       command: qm start 101
-      vars:
-        api_host: pm02
+      delegate_to: pm02
 
     - name: Start VM on pm03
       command: qm start 102
-      vars:
-        api_host: pm03
-
-
+      delegate_to: pm03
 
 ###
 ### de VMs wachten tot ze gestart zijn
@@ -242,7 +221,13 @@
         - "espocrm-vm2"
         - "espocrm-vm3"
 
-
+    - name: Configure HA for VMs
+      command:
+        cmd: "pvecm add {{ item }}"
+      loop:
+        - "pm01"
+        - "pm02"
+        - "pm03"
 ###
 ### Twee keer per dag moet er een snapshot van de VM worden gemaakt.
 ###
