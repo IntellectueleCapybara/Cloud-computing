@@ -29,6 +29,24 @@
         state: present
       when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
 
+    - name: Download Bitnami EspoCRM ISO
+      get_url:
+        url: https://downloads.bitnami.com/files/stacks/espocrm/8.0.2/bitnami-espocrm-8.0.2-r0-debian-11-amd64.ova
+        dest: /root/iso
+        mode: '0444'
+
+    - name: Create directory for OVA import
+      file:
+        path: /root/ova_import
+        state: directory
+
+    - name: Extract OVA file
+      unarchive:
+        src: /root/iso/bitnami-espocrm.ova
+        dest: /root/ova_import
+        remote_src: yes
+
+
 
 - name: Automate EspoCRM Deployment
   hosts: localhost
@@ -94,9 +112,10 @@
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
+        iso: "/root/iso"
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/24,gw=172.16.0.1"}'
+        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
       loop:
         - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
     - name: Create VMs on pm02
@@ -111,9 +130,10 @@
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
+        iso: "/root/iso"
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/24,gw=172.16.0.1"}'
+        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
       loop:
         - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
 
@@ -129,9 +149,10 @@
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
+        iso: "/root/iso"
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/24,gw=172.16.0.1"}'
+        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
       loop:
         - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
