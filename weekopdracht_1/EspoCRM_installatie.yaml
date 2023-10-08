@@ -98,7 +98,7 @@
         ostype: l26 # Ubuntu 20.04 LTS
         ipconfig: '{"ipconfig0":"ip={{ item.ip }}/24,gw=172.16.0.1"}'
       loop:
-        - { vmid: 100, hostname: "espocrm-vm1", ip: "172.16.39.100" }
+        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
     - name: Create VMs on pm02
       proxmox_kvm:
         api_user: root@pam
@@ -115,7 +115,7 @@
         ostype: l26 # Ubuntu 20.04 LTS
         ipconfig: '{"ipconfig0":"ip={{ item.ip }}/24,gw=172.16.0.1"}'
       loop:
-        - { vmid: 101, hostname: "espocrm-vm2", ip: "172.16.39.101" }
+        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
 
     - name: Create VMs on pm03
       proxmox_kvm:
@@ -133,7 +133,7 @@
         ostype: l26 # Ubuntu 20.04 LTS
         ipconfig: '{"ipconfig0":"ip={{ item.ip }}/24,gw=172.16.0.1"}'
       loop:
-        - { vmid: 102, hostname: "espocrm-vm3", ip: "172.16.39.102" }
+        - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
 
 ###
@@ -148,9 +148,9 @@
         vmid: "{{ item.vmid }}"
         ip: "{{ item.ip }}"
       loop:
-        - { node: "pm01", vmid: 100, hostname: "espocrm-vm1", ip: "172.16.39.101" }
-        - { node: "pm02", vmid: 101, hostname: "espocrm-vm2", ip: "172.16.39.102" }
-        - { node: "pm03", vmid: 102, hostname: "espocrm-vm3", ip: "172.16.39.103" }
+        - { node: "pm01", vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.101" }
+        - { node: "pm02", vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.102" }
+        - { node: "pm03", vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.103" }
 
     - name: VMs tevoegen aan hosts file
       lineinfile:
@@ -159,9 +159,9 @@
         state: present
       become: yes
       loop:
-        - { hostname: "espocrm-vm1", ip: "172.16.39.101" }
-        - { hostname: "espocrm-vm2", ip: "172.16.39.102" }
-        - { hostname: "espocrm-vm3", ip: "172.16.39.103" }
+        - { hostname: "espocrmvm1", ip: "172.16.39.101" }
+        - { hostname: "espocrmvm2", ip: "172.16.39.102" }
+        - { hostname: "espocrmvm3", ip: "172.16.39.103" }
 
 ###
 ### de VMs starten
@@ -205,9 +205,9 @@
         timeout: 60
         state: started
       with_items:
-        - "espocrm-vm1"
-        - "espocrm-vm2"
-        - "espocrm-vm3"
+        - "espocrmvm1"
+        - "espocrmvm2"
+        - "espocrmvm3"
 
 ###
 ### de VMs updaten en rebooten
@@ -216,21 +216,19 @@
     - name: Update VMs
       apt:
         update_cache: yes
-      vars:
-        ansible_python_interpreter: /usr/bin/python3
       delegate_to: "{{ item }}"
       with_items:
-        - "espocrm-vm1"
-        - "espocrm-vm2"
-        - "espocrm-vm3"
+        - "espocrmvm1"
+        - "espocrmvm2"
+        - "espocrmvm3"
 
     - name: Reboot VMs
       shell: reboot
       delegate_to: "{{ item }}"
       with_items:
-        - "espocrm-vm1"
-        - "espocrm-vm2"
-        - "espocrm-vm3"
+        - "espocrmvm1"
+        - "espocrmvm2"
+        - "espocrmvm3"
       async: 1
       poll: 0
 
@@ -243,9 +241,9 @@
         timeout: 180
         state: started
       with_items:
-        - "espocrm-vm1"
-        - "espocrm-vm2"
-        - "espocrm-vm3"
+        - "espocrmvm1"
+        - "espocrmvm2"
+        - "espocrmvm3"
 
     - name: Configure HA for VMs
       command:
