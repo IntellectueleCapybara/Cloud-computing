@@ -35,11 +35,25 @@
         state: directory
         mode: '0755'
 
+    ###
+    ### iso downloaden en op cdrom mounten
+    ###
+
     - name: Download Ubuntu ISO
       get_url:
         url: "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-live-server-amd64.iso"
         dest: "/root/iso/ubuntu-22.04.iso"
         mode: '0444'
+
+    - name: Create directory
+      file:
+        path: /mnt/cdrom
+        state: directory
+        mode: '0755'
+
+    - name: Mount ISO
+      command: mount -o loop /root/iso/ubuntu-22.04.iso /mnt/cdrom
+
 
 
 
