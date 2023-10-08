@@ -57,7 +57,6 @@
         virtio: '{"virtio0":"local:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-        force: yes  # voeg deze regel toe
       loop:
         - { vmid: 100, hostname: "espocrm-vm1" }
 
@@ -75,7 +74,6 @@
         virtio: '{"virtio0":"local:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-        force: yes  # voeg deze regel toe
       loop:
         - { vmid: 101, hostname: "espocrm-vm2" }
 
@@ -93,7 +91,6 @@
         virtio: '{"virtio0":"local:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-        force: yes  # voeg deze regel toe
       loop:
         - { vmid: 102, hostname: "espocrm-vm3" }
 
