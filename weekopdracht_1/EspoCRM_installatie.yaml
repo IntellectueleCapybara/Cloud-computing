@@ -37,8 +37,8 @@
 
     - name: Download Ubuntu ISO
       get_url:
-        url: "http://releases.ubuntu.com/20.04/ubuntu-20.04.3-live-server-amd64.iso"
-        dest: "/root/iso/ubuntu-20.04.iso"
+        url: "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-live-server-amd64.iso"
+        dest: "/root/iso/ubuntu-22.04.iso"
         mode: '0444'
 
 
