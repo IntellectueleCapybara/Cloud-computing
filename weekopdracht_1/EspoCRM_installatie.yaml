@@ -108,7 +108,9 @@
 ###
 ###EspoCRM VMs aanmaken met disk 50G/2 proc/2GB mem ne statische IP toekennen
 ###
-
+    ###
+    ### PM01
+    ###
     - name: Create VMs on pm01
       proxmox_kvm:
         api_user: root@pam
@@ -121,12 +123,25 @@
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
-        iso: "/root/iso/ubuntu-20.04.iso"
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
         ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
       loop:
         - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
+
+    - name: Add cdrom to VM
+      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
+      loop:
+        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
+
+    - name: Set bootdisk to cdrom
+      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
+      loop:
+        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
+
+    ###
+    ### PM02
+    ###
 
     - name: Create VMs on pm02
       proxmox_kvm:
@@ -140,12 +155,25 @@
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
-        iso: "/root/iso/ubuntu-20.04.iso"
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
         ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
       loop:
         - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
+
+    - name: Add cdrom to VM
+      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
+      loop:
+        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
+
+    - name: Set bootdisk to cdrom
+      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
+      loop:
+        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
+        -
+    ###
+    ### PM03
+    ###
 
     - name: Create VMs on pm03
       proxmox_kvm:
@@ -159,13 +187,21 @@
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
-        iso: "/root/iso/ubuntu-20.04.iso"
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
         ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
       loop:
         - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
+    - name: Add cdrom to VM
+      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
+      loop:
+        - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
+
+    - name: Set bootdisk to cdrom
+      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
+      loop:
+        - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
 ###
 ### espocrm_vms groep aanmaken
