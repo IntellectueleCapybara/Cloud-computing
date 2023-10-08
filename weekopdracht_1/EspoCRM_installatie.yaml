@@ -153,7 +153,10 @@
 ###
 ### de VMs starten
 ###
-
+- name: Create snapshot script on Proxmox hosts
+  hosts: pm01,pm02,pm03
+  become: yes
+  tasks:
     - name: Start VM on pm01
       command: qm start 100
       delegate_to: pm01
@@ -170,6 +173,11 @@
 ### de VMs wachten tot ze gestart zijn
 ###
 
+- name: Automate EspoCRM Deployment
+  hosts: localhost
+  gather_facts: no
+  become: yes
+  tasks:
     - name: Wait for VMs to boot
       local_action:
         module: wait_for
