@@ -1,5 +1,6 @@
 ###
-### Het aanmaken van de 2 gebrukers +ssh sleutels
+### Het aanmaken van de 2 gebrukers +ssh sleutels op elke proxmox server
+### ze kunnen bij elkaar inloggen met alleen ssh sleutels, geen password nodig
 ###
 
 - name: Maak gebruikers en genereer SSH-sleutels

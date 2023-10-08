@@ -8,6 +8,10 @@
   gather_facts: no
   become: yes
 
+###
+### vars gebruiken zodat dit script ook scalable is
+###
+
   vars: #verander dit als je andere IPs hebt en andere nodenamen
     pm01: 172.16.39.70
     pm02: 172.16.39.71
@@ -15,6 +19,11 @@
     node1: geenboom2
     node2: geenboom3
     node3: geenboom4
+
+
+###
+### Wachtwoorden prompten zodat hij niet hardcoded in het script staat
+###
 
   vars_prompt:
     - name: "api_password"
@@ -42,7 +51,9 @@
       ansible.builtin.command:
         cmd: ansible-galaxy collection install community.general
 
-
+###
+###EspoCRM VMs aanmaken met disk 50G/2 proc/2GB mem
+###
     - name: Create VMs on pm01
       proxmox_kvm:
         api_user: root@pam
@@ -54,7 +65,7 @@
         memory: 2048
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
-        virtio: '{"virtio0":"local:50"}'
+        virtio: '{"virtio0":"local-lvm:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
@@ -71,7 +82,7 @@
         memory: 2048
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
-        virtio: '{"virtio0":"local:50"}'
+        virtio: '{"virtio0":"local-lvm:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
@@ -88,7 +99,7 @@
         memory: 2048
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
-        virtio: '{"virtio0":"local:50"}'
+        virtio: '{"virtio0":"local-lvm:50"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
       loop:
@@ -97,7 +108,7 @@
 
 
 ###
-### de nodes nu toevoegen aan het host bestand en een snapshot maken
+### de nodes nu toevoegen aan het host bestand
 ###
 
     - name: Add espocrm_vms to group
@@ -108,6 +119,11 @@
         - { node: pm01, vmid: 100, hostname: "espocrm-vm1" }
         - { node: pm02, vmid: 101, hostname: "espocrm-vm2" }
         - { node: pm03, vmid: 102, hostname: "espocrm-vm3" }
+
+
+###
+### . Twee keer per dag moet er een snapshot van de VM worden gemaakt.
+###
 
 - name: Create snapshot script on Proxmox hosts
   hosts: pm01,pm02,pm03

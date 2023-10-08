@@ -1,3 +1,7 @@
+###
+### enterprise repository aangepast
+###
+
 - name: subscriptie uitetten
   hosts:  # Hosts waarop je deze taak wilt uitvoeren
     - pm01
@@ -112,9 +116,17 @@
     - set_fact:
         ansible_python_interpreter: "{{ python_path_result.stdout }}"
 
+    ###
+    ### het aanmaken van de wordpress volumes in de shared storage
+    ###
+
     - name: Create Docker volumes
       command: docker volume create --name "wordpress_volume_{{ item }}" --opt type=local --opt device=/mnt/pve/shared_storage --opt o=size=30G
       loop: "{{ range(1, 11) | list }}"
+
+    ###
+    ### de wordpress containers aanmaken met 30Gb disk / 1proc / 1Gb mem
+    ###
 
     - name: WordPress Containers aanmaken
       docker_container:
@@ -130,7 +142,7 @@
 
 
     ###
-    ### de wordpress containers zijn aangemaakt
+    ### de snelheid beperken van de wordpress containers tot 50MB/s
     ###
 
     - name: Controleer of het aangepaste netwerk bestaat
@@ -180,7 +192,7 @@
       when: bandwidth_limit_check.rc != 0
 
     ###
-    ### SSL cert
+    ### SSL certificaten aanmaken
     ###
     - name: Controleer containers
       command: docker ps -q
@@ -202,6 +214,10 @@
       debug:
         var: container_info
 
+    ###
+    ### 2 gebruikers toevoegen aan de containers
+    ###
+
     - name: Voeg gebruikers toe aan de containers
       shell: >
         docker exec -i wordpress_container_{{ item }} /bin/bash -c "
@@ -212,7 +228,7 @@
       when: "'wordpress_container_' ~ item in container_info.stdout_lines"
 
 ###
-### Firewall script runnen
+### Firewall script runnen die ervoor zorgt dat alleen de noodzakelijke diensten van buitenaf benaderbaar zijn.
 ###
 
 - name: Kopieer firewall-script naar de containers
