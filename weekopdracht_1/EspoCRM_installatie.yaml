@@ -140,7 +140,7 @@
 ### espocrm_vms groep aanmaken
 ###
 
-    - name: Add espocrm_vms to group
+    - name: espocrm_vms group maken
       add_host:
         name: "{{ item.hostname }}"
         groups: espocrm_vms
@@ -152,7 +152,16 @@
         - { node: "pm02", vmid: 101, hostname: "espocrm-vm2", ip: "172.16.39.102" }
         - { node: "pm03", vmid: 102, hostname: "espocrm-vm3", ip: "172.16.39.103" }
 
-
+    - name: VMs tevoegen aan hosts file
+      lineinfile:
+        path: /home/geenboom1/ansible_wordpress_project/hosts
+        line: "\n[{{ item.hostname }}]\n{{ item.ip }}"
+        state: present
+      become: yes
+      loop:
+        - { hostname: "espocrm-vm1", ip: "172.16.39.101" }
+        - { hostname: "espocrm-vm2", ip: "172.16.39.102" }
+        - { hostname: "espocrm-vm3", ip: "172.16.39.103" }
 
 ###
 ### de VMs starten
