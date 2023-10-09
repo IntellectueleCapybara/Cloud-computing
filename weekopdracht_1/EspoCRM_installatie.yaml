@@ -43,46 +43,11 @@
 ### de VMs updaten en rebooten
 ###
 
-- name: Automate EspoCRM Deployment
-  hosts:
-    - espocrmvm1
-    - espocrmvm2
-    - espocrmvm3
-  gather_facts: no
-  become: yes
-  tasks:
-
-    - name: Update VMs
-      apt:
-        update_cache: yes
-        upgrade: yes
-
-    - name: Reboot
-      shell: reboot
-      async: 1
-      poll: 0
-
-- name: wachten op reboot
-  hosts: localhost
-  gather_facts: no
-  become: yes
-  tasks:
-    - name: Wait for VMs to boot
-      local_action:
-        module: wait_for_connection
-        delay: 5
-        timeout: 300
-        state: started
-      with_items:
-        - "espocrmvm1"
-        - "espocrmvm2"
-        - "espocrmvm3"
-
 ###
 ### high availability toevoegen aan de vms
 ###
 
-- name: VM starten op Proxmox 1
+- name: Configure HA for VMs
   hosts: pm01
   tasks:
     - name: Configure HA for VMs
@@ -91,7 +56,7 @@
       loop:
         - { vmid: 101, ha_state: "enabled", ha_resources: "memory=2048,cpu=2" }
 
-- name: VM starten op Proxmox 1
+- name: Configure HA for VMs
   hosts: pm01
   tasks:
     - name: Configure HA for VMs
@@ -100,7 +65,7 @@
       loop:
         - { vmid: 102, ha_state: "enabled", ha_resources: "memory=2048,cpu=2" }
 
-- name: VM starten op Proxmox 1
+- name: Configure HA for VMs
   hosts: pm01
   tasks:
     - name: Configure HA for VMs
