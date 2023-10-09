@@ -77,34 +77,35 @@
       ansible.builtin.command:
         cmd: ansible-galaxy collection install community.general
 
-###
-###EspoCRM VMs aanmaken met disk 50G/2 proc/2GB mem ne statische IP toekennen
-###
-#    ###
-#    ### PM01
-#    ###
-#    - name: Create VMs on pm01
-#      proxmox_kvm:
-#        api_user: root@pam
-#        api_password: "{{ api_password }}"
-#        api_host: "{{ pm01 }}"
-#        node: "{{ node1 }}"
-#        name: "{{ item.hostname }}"
-#        clone: ubuntu-2004-cloudinit-template
-#        newid: "{{ item.vmid }}"
-#        memory: 2048
-#        cores: 2
-#        net: '{"net0":"virtio,bridge=vmbr0"}'
-#        virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
-#        onboot: yes
-#        ostype: l26 # Ubuntu 20.04 LTS
-#        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
-#      loop:
-#        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
-#
-#    ##
-#    ## PM02
-#    ##
+##
+##EspoCRM VMs aanmaken met disk 50G/2 proc/2GB mem ne statische IP toekennen
+##
+    ###
+    ### PM01
+    ###
+    - name: Create VMs on pm01
+      proxmox_kvm:
+        api_user: root@pam
+        api_password: "{{ api_password }}"
+        api_host: "{{ pm01 }}"
+        node: "{{ node1 }}"
+        name: "{{ item.hostname }}"
+        clone: ubuntu-2004-cloudinit-template
+        newid: "{{ item.vmid }}"
+        memory: 2048
+        cores: 2
+        net: '{"net0":"virtio,bridge=vmbr0"}'
+        virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
+        onboot: yes
+        ostype: l26 # Ubuntu 20.04 LTS
+        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
+        agent: '1'
+      loop:
+        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
+
+    ##
+    ## PM02
+    ##
 
     - name: Create VMs on pm02
       proxmox_kvm:
@@ -122,6 +123,7 @@
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
         ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
+        agent: '1'
       loop:
         - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
 
@@ -135,8 +137,9 @@
         api_password: "{{ api_password }}"
         api_host: "{{ pm03 }}"
         node: "{{ node3 }}"
-        vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
+        clone: ubuntu-2004-cloudinit-template
+        newid: "{{ item.vmid }}"
         memory: 2048
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
@@ -144,6 +147,7 @@
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
         ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
+        agent: '1'
       loop:
         - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
