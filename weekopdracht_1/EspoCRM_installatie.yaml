@@ -105,7 +105,12 @@
   ###
 
     - name: monitor server toevoegen
-      shell: wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token _ExXqLL6xuhgP-in2_scLbHnb9CpJhFWdyRDv0_9va-y0oDh_7C1nIzPYKTrswU_jjBaTVyw3uDv9HZEOwJDLAr3GPN77vDROxZRyTiTpenkwEiBZSb_BoNBOp9iFXMdPljhxvY --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001 --claim-url https://app.netdata.cloud
+      shell: >
+        wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh &&
+        sh /tmp/netdata-kickstart.sh --nightly-channel
+        --claim-token _ExXqLL6xuhgP-in2_scLbHnb9CpJhFWdyRDv0_9va-y0oDh_7C1nIzPYKTrswU_jjBaTVyw3uDv9HZEOwJDLAr3GPN77vDROxZRyTiTpenkwEiBZSb_BoNBOp9iFXMdPljhxvY
+        --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001
+        --claim-url https://app.netdata.cloud
 
 
 - name: EspoCRM VMs instellen
