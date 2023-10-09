@@ -28,36 +28,7 @@
         line: "//172.16.0.100/shared_storage /shared_storage cifs username=student422422,password={{ cifs_password }},rw 0 0"
         state: present
       when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
-
-    - name: Create directory
-      file:
-        path: "/root/iso"
-        state: directory
-        mode: '0755'
-
-    ###
-    ### iso downloaden en op cdrom mounten
-    ###
-
-    - name: Download Ubuntu ISO
-      get_url:
-        url: "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-live-server-amd64.iso"
-        dest: "/root/iso/ubuntu-22.04.iso"
-        mode: '0444'
-
-    - name: Check if /mnt/cdrom is already mounted
-      command: mountpoint -q /mnt/cdrom
-      register: is_mounted
-      ignore_errors: yes
-
-    - name: Mount ISO
-      command: mount -o loop /root/iso/ubuntu-22.04.iso /mnt/cdrom
-      when: is_mounted.rc != 0
-
-
-
-
-
+    
 - name: Automate EspoCRM Deployment
   hosts: localhost
   gather_facts: no
@@ -109,30 +80,31 @@
 ###
 ###EspoCRM VMs aanmaken met disk 50G/2 proc/2GB mem ne statische IP toekennen
 ###
-    ###
-    ### PM01
-    ###
-    - name: Create VMs on pm01
-      proxmox_kvm:
-        api_user: root@pam
-        api_password: "{{ api_password }}"
-        api_host: "{{ pm01 }}"
-        node: "{{ node1 }}"
-        vmid: "{{ item.vmid }}"
-        name: "{{ item.hostname }}"
-        memory: 2048
-        cores: 2
-        net: '{"net0":"virtio,bridge=vmbr0"}'
-        virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
-        onboot: yes
-        ostype: l26 # Ubuntu 20.04 LTS
-        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
-      loop:
-        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
-
-    ###
-    ### PM02
-    ###
+#    ###
+#    ### PM01
+#    ###
+#    - name: Create VMs on pm01
+#      proxmox_kvm:
+#        api_user: root@pam
+#        api_password: "{{ api_password }}"
+#        api_host: "{{ pm01 }}"
+#        node: "{{ node1 }}"
+#        name: "{{ item.hostname }}"
+#        clone: ubuntu-2004-cloudinit-template
+#        newid: "{{ item.vmid }}"
+#        memory: 2048
+#        cores: 2
+#        net: '{"net0":"virtio,bridge=vmbr0"}'
+#        virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
+#        onboot: yes
+#        ostype: l26 # Ubuntu 20.04 LTS
+#        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
+#      loop:
+#        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
+#
+#    ##
+#    ## PM02
+#    ##
 
     - name: Create VMs on pm02
       proxmox_kvm:
@@ -140,8 +112,9 @@
         api_password: "{{ api_password }}"
         api_host: "{{ pm02 }}"
         node: "{{ node2 }}"
-        vmid: "{{ item.vmid }}"
         name: "{{ item.hostname }}"
+        clone: ubuntu-2004-cloudinit-template
+        newid: "{{ item.vmid }}"
         memory: 2048
         cores: 2
         net: '{"net0":"virtio,bridge=vmbr0"}'
@@ -175,48 +148,6 @@
         - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
 
-###
-### iso toevoegen aan vm
-###
-
-- name: iso toevoegen aan vm
-  hosts:
-    - pm01
-    - pm02
-    - pm03
-  tasks:
-
-    - name: Add cdrom to VM
-      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
-      loop:
-        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
-
-    - name: Set bootdisk to cdrom
-      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
-      loop:
-        - { vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
-
-    - name: Add cdrom to VM
-      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
-      loop:
-        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
-
-    - name: Set bootdisk to cdrom
-      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
-      loop:
-        - { vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
-
-    - name: Add cdrom to VM
-      command: qm set {{ item.vmid }} -ide2 /mnt/cdrom
-      delegate_to: "{{ pm03 }}"
-      loop:
-        - { vmid: 103, hostname: "espocrmvm3", ip: "172.16.39.103" }
-
-    - name: Set bootdisk to cdrom
-      command: qm set {{ item.vmid }} -boot c -bootdisk ide2
-      delegate_to: "{{ pm03 }}"
-      loop:
-        - { vmid: 103, hostname: "espocrmvm3", ip: "172.16.39.103" }
 
 ###
 ### espocrm_vms groep aanmaken
