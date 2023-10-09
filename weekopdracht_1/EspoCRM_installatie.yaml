@@ -28,7 +28,67 @@
         line: "//172.16.0.100/shared_storage /shared_storage cifs username=student422422,password={{ cifs_password }},rw 0 0"
         state: present
       when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
-    
+
+    - name: Create a Proxmox template
+      shell: |
+        wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
+        virt-customize -a focal-server-cloudimg-amd64.img --install qemu-guest-agent --root-password password:422422
+        qm create 9000 --name "ubuntu-2004-cloudinit-template" --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
+        qm importdisk 9000 focal-server-cloudimg-amd64.img local-lvm
+        qm set 9000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-9000-disk-0
+        qm set 9000 --boot c --bootdisk scsi0
+        qm set 9000 --serial0 socket --vga serial0
+        qm set 9000 --agent enabled=1
+        qm template 9000
+
+- name: de template maken voor VMs
+  hosts: localhost
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Create cloud-init network configs for VMs
+      copy:
+        content: |
+          #cloud-config
+          network:
+            version: 2
+            ethernets:
+              ens18:
+                dhcp4: no
+                addresses:
+                  - {{ item.ip }}/16
+                gateway4: 172.16.0.1
+                nameservers:
+                  addresses: [1.1.1.1, 1.0.0.1]
+        dest: "/var/lib/vz/snippets/cloud-init-network-config-{{ item.vmid }}"
+      loop:
+        - { vmid: 101, ip: "172.16.39.101" }
+        - { vmid: 102, ip: "172.16.39.102" }
+        - { vmid: 103, ip: "172.16.39.103" }
+
+- name: Voeg CIFS gedeelde opslag toe aan Proxmox
+  hosts: pm01
+  tasks:
+    - name: Attach cloud-init network configs to VMs
+      shell: |
+        qm set 100 --ide2 local-lvm:cloudinit=snippets/cloud-init-network-config-100
+
+- name: Voeg cloud-init toe aan de VMs
+  hosts: pm02
+  tasks:
+    - name: Attach cloud-init network configs to VMs
+      shell: |
+        qm set 101 --ide2 local-lvm:cloudinit=snippets/cloud-init-network-config-101
+
+- name: Voeg cloud-init toe aan de VMs
+  hosts: pm03
+  tasks:
+    - name: Attach cloud-init network configs to VMs
+      shell: |
+        qm set 102 --ide2 local-lvm:cloudinit=snippets/cloud-init-network-config-102
+
+
+
 - name: Automate EspoCRM Deployment
   hosts: localhost
   gather_facts: no
@@ -146,7 +206,7 @@
         virtio: '{"virtio0":"shared_storage:50,format=qcow2"}'
         onboot: yes
         ostype: l26 # Ubuntu 20.04 LTS
-        ipconfig: '{"ipconfig0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
+        ipconfig: '{"net0":"ip={{ item.ip }}/16,gw=172.16.0.1"}'
         agent: '1'
       loop:
         - { vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
@@ -205,7 +265,7 @@
       shell: "qm status 102 | grep -q 'status: running' || qm start 102"
 
 ###
-### de VMs wachten tot ze gestart zijn
+### de VMs wachten tot ze gestart zijn ### code op internet
 ###
 
 - name: Automate EspoCRM Deployment
