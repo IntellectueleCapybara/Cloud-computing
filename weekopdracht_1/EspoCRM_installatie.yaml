@@ -24,19 +24,16 @@
 ### de VMs wachten tot ze gestart zijn ### code op internet
 ###
 
-- name: Automate EspoCRM Deployment
+- name: wachten op boot
   hosts: localhost
   gather_facts: no
   become: yes
   tasks:
     - name: Wait for VMs to boot
       local_action:
-        module: wait_for
-        host: "{{ item }}"
-        port: 22
+        module: wait_for_connection
         delay: 5
         timeout: 300
-        state: started
       with_items:
         - "espocrmvm1"
         - "espocrmvm2"
@@ -46,30 +43,33 @@
 ### de VMs updaten en rebooten
 ###
 
+- name: Automate EspoCRM Deployment
+  hosts:
+    - espocrmvm1
+    - espocrmvm2
+    - espocrmvm3
+  gather_facts: no
+  become: yes
+  tasks:
+
     - name: Update VMs
       apt:
         update_cache: yes
-      delegate_to: "{{ item }}"
-      with_items:
-        - "espocrmvm1"
-        - "espocrmvm2"
-        - "espocrmvm3"
+        upgrade: yes
 
-    - name: Reboot VMs
+    - name: Reboot
       shell: reboot
-      delegate_to: "{{ item }}"
-      with_items:
-        - "espocrmvm1"
-        - "espocrmvm2"
-        - "espocrmvm3"
       async: 1
       poll: 0
 
-    - name: Wait for VMs to reboot
+- name: wachten op reboot
+  hosts: localhost
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Wait for VMs to boot
       local_action:
-        module: wait_for
-        host: "{{ item }}"
-        port: 22
+        module: wait_for_connection
         delay: 5
         timeout: 300
         state: started
@@ -78,9 +78,10 @@
         - "espocrmvm2"
         - "espocrmvm3"
 
-    ###
-    ### high availability toevoegen aan de vms
-    ###
+###
+### high availability toevoegen aan de vms
+###
+
 - name: VM starten op Proxmox 1
   hosts: pm01
   tasks:
