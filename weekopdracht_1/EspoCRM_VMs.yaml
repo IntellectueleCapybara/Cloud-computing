@@ -149,7 +149,7 @@
         api_host: "{{ pm01 }}"
         node: "{{ node1 }}"
         name: "{{ item.hostname }}"
-        clone: ubuntu-2004-cloudinit-template
+        clone: 8999
         newid: "{{ item.vmid }}"
         memory: 2048
         cores: 2
@@ -173,7 +173,7 @@
         api_host: "{{ pm02 }}"
         node: "{{ node2 }}"
         name: "{{ item.hostname }}"
-        clone: ubuntu-2004-cloudinit-template
+        clone: 9000
         newid: "{{ item.vmid }}"
         memory: 2048
         cores: 2
@@ -197,7 +197,7 @@
         api_host: "{{ pm03 }}"
         node: "{{ node3 }}"
         name: "{{ item.hostname }}"
-        clone: ubuntu-2004-cloudinit-template
+        clone: 9001
         newid: "{{ item.vmid }}"
         memory: 2048
         cores: 2
