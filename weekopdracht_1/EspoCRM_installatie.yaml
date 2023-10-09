@@ -4,21 +4,18 @@
 ###
 - name: VM starten op Proxmox 1
   hosts: pm01
-  become: yes
   tasks:
     - name: Start VM on pm01
       shell: "qm status 100 | grep -q 'status: running' || qm start 100"
 
 - name: VM starten op Proxmox 2
   hosts: pm02
-  become: yes
   tasks:
     - name: Start VM on pm02
       shell: "qm status 101 | grep -q 'status: running' || qm start 101"
 
 - name: VM starten op Proxmox 3
   hosts: pm03
-  become: yes
   tasks:
     - name: Start VM on pm03
       shell: "qm status 102 | grep -q 'status: running' || qm start 102"
@@ -74,20 +71,43 @@
         host: "{{ item }}"
         port: 22
         delay: 5
-        timeout: 180
+        timeout: 300
         state: started
       with_items:
         - "espocrmvm1"
         - "espocrmvm2"
         - "espocrmvm3"
 
+    ###
+    ### high availability toevoegen aan de vms
+    ###
+- name: VM starten op Proxmox 1
+  hosts: pm01
+  tasks:
     - name: Configure HA for VMs
       command:
-        cmd: "pvecm add {{ item }}"
+        cmd: "qm set {{ item.vmid }} --ha-state {{ item.ha_state }} --ha-resources {{ item.ha_resources }}"
       loop:
-        - "pm01"
-        - "pm02"
-        - "pm03"
+        - { vmid: 101, ha_state: "enabled", ha_resources: "memory=2048,cpu=2" }
+
+- name: VM starten op Proxmox 1
+  hosts: pm01
+  tasks:
+    - name: Configure HA for VMs
+      command:
+        cmd: "qm set {{ item.vmid }} --ha-state {{ item.ha_state }} --ha-resources {{ item.ha_resources }}"
+      loop:
+        - { vmid: 102, ha_state: "enabled", ha_resources: "memory=2048,cpu=2" }
+
+- name: VM starten op Proxmox 1
+  hosts: pm01
+  tasks:
+    - name: Configure HA for VMs
+      command:
+        cmd: "qm set {{ item.vmid }} --ha-state {{ item.ha_state }} --ha-resources {{ item.ha_resources }}"
+      loop:
+        - { vmid: 103, ha_state: "enabled", ha_resources: "memory=2048,cpu=2" }
+
 ###
 ### Twee keer per dag moet er een snapshot van de VM worden gemaakt.
 ###
