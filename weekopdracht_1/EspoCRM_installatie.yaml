@@ -40,8 +40,29 @@
         - "espocrmvm3"
 
 ###
-### de VMs updaten en rebooten
+### shared storage gebruiken voor meer opslag
 ###
+- name: de VDA opslag gebruiken
+  hosts:
+    - espocrmvm1
+    - espocrmvm2
+    - espocrmvm3
+  become: yes
+  tasks:
+    - name: Maak het mount point
+      file:
+        path: /mnt/vda
+        state: directory
+
+    - name: Voeg de harde schijf toe aan /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        line: '/dev/vda /mnt/vda ext4 defaults 0 0'
+        state: present
+
+    - name: Mount alle bestandssystemen waarvan de fstab regels gelezen zijn
+      command:
+        cmd: mount -a
 
 ###
 ### high availability toevoegen aan de vms
@@ -114,13 +135,9 @@
         port: 80
         proto: tcp
 
-    - name: monitor server toevoegen
-      shell: >
-        wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh &&
-        sh /tmp/netdata-kickstart.sh --nightly-channel
-        --claim-token _ExXqLL6xuhgP-in2_scLbHnb9CpJhFWdyRDv0_9va-y0oDh_7C1nIzPYKTrswU_jjBaTVyw3uDv9HZEOwJDLAr3GPN77vDROxZRyTiTpenkwEiBZSb_BoNBOp9iFXMdPljhxvY
-        --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001
-        --claim-url https://app.netdata.cloud
+    - name: monitor server toevoegen(netdata)
+      become: yes
+      ansible.builtin.shell: wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token OzRKNSi-wepAK1p2HXzvzWchzcdhOwRJBNCJWunz4F51RdSJAa92m3jeelVE2Wk5zeOeQlf4-mZO9Suv-JAsxReMna5MyY1iv7hS7yxtVw7sn9KqCJFPzfDvwbXa6ixGsQ4-agE --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001 --claim-url https://app.netdata.cloud
 
     - name: Check if EspoCRM is installed
       stat:
