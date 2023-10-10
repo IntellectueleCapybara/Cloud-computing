@@ -114,6 +114,11 @@
 ###
 ### installeren van espocrm op de vms
 ###
+    - name: UFW - Allow HTTP on port http_port
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
 
     - name: monitor server toevoegen
       shell: >
