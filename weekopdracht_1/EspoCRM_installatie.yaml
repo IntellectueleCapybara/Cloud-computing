@@ -50,29 +50,20 @@
 - name: Configure HA for VMs
   hosts: pm01
   tasks:
-    - name: Configure HA for VMs
-      command:
-        cmd: "qm set {{ item.vmid }} --ha-state {{ item.ha_state }} --ha-resources {{ item.ha_resources }}"
-      loop:
-        - { vmid: 101, ha_state: "enabled", ha_resources: "memory=2048,cpu=2" }
+    - name: Enable HA for VMs
+      command: "ha-manager add 100 --state=enabled --type=vm"
 
 - name: Configure HA for VMs
   hosts: pm01
   tasks:
-    - name: Configure HA for VMs
-      command:
-        cmd: "qm set {{ item.vmid }} --ha-state {{ item.ha_state }} --ha-resources {{ item.ha_resources }}"
-      loop:
-        - { vmid: 102, ha_state: "enabled", ha_resources: "memory=2048,cpu=2" }
+    - name: Enable HA for VMs
+      command: "ha-manager add 101 --state=enabled --type=vm"
 
 - name: Configure HA for VMs
   hosts: pm01
   tasks:
-    - name: Configure HA for VMs
-      command:
-        cmd: "qm set {{ item.vmid }} --ha-state {{ item.ha_state }} --ha-resources {{ item.ha_resources }}"
-      loop:
-        - { vmid: 103, ha_state: "enabled", ha_resources: "memory=2048,cpu=2" }
+    - name: Enable HA for VMs
+      command: "ha-manager add 102 --state=enabled --type=vm"
 
 ###
 ### Twee keer per dag moet er een snapshot van de VM worden gemaakt.
