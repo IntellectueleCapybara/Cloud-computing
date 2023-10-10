@@ -97,7 +97,10 @@
 
 
 - name: EspoCRM VMs instellen
-  hosts: espocrm_vms
+  hosts:
+    - espocrmvm1
+    - espocrmvm2
+    - espocrmvm3
   become: yes
 
   tasks:
