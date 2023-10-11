@@ -59,6 +59,7 @@
         path: /etc/fstab
         line: '/dev/vda /mnt/vda ext4 defaults 0 0'
         state: present
+      become: yes
 
     - name: Mount alle bestandssystemen waarvan de fstab regels gelezen zijn
       command:
