@@ -1,0 +1,81 @@
+###
+### Het aanmaken van de 2 gebrukers +ssh sleutels op elke proxmox server
+### ze kunnen bij elkaar inloggen met alleen ssh sleutels, geen password nodig
+###
+
+- name: Maak gebruikers en genereer SSH-sleutels
+  hosts:
+    - pm01
+    - pm02
+    - pm03
+  become: yes
+  vars:
+    users:
+      - username: numbero_uno
+        pubkey_file: id_rsa.pub
+      - username: numbero_dos
+        pubkey_file: id_rsa.pub
+
+  tasks:
+    - name: Maak gebruikers aan
+      user:
+        name: "{{ item.username }}"
+        createhome: yes
+      with_items: "{{ users }}"
+
+    - name: Zet de rechten van .ssh directory
+      file:
+        path: "/home/{{ item.username }}/.ssh"
+        state: directory
+        owner: "{{ item.username }}"
+        group: "{{ item.username }}"
+        mode: "0700"
+      with_items: "{{ users }}"
+
+    - name: Genereer SSH-sleutels
+      openssh_keypair:
+        path: "/home/{{ item.username }}/.ssh/id_rsa"
+        state: present
+      with_items: "{{ users }}"
+
+    - name: Lees de inhoud van id_rsa.pub
+      ansible.builtin.shell: cat /home/{{ item.username }}/.ssh/id_rsa.pub
+      loop: "{{ users }}"
+      register: public_key_data
+
+    - name: Zet de publieke sleutels in een lijst
+      set_fact:
+        public_keys: "{{ public_keys | default([]) + [item.stdout] }}"
+      loop: "{{ public_key_data.results }}"
+      vars:
+        public_keys: [ ]
+
+    - name: Sla de publieke sleutels op in een bestand
+      copy:
+        content: "{{ public_keys | join('\n') }}"
+        dest: "/home/{{ inventory_hostname }}_public_keys"
+      delegate_to: localhost
+
+    - name: Lees de publieke sleutels uit het bestand
+      ansible.builtin.shell: cat /home/{{ item }}_public_keys
+      register: all_public_key_data
+      loop: "{{ groups['all'] }}"
+      delegate_to: localhost
+
+    - name: Zet alle publieke sleutels in een lijst
+      set_fact:
+        all_public_keys: "{{ all_public_keys | default([]) + [item.stdout] }}"
+      loop: "{{ all_public_key_data.results }}"
+      vars:
+        all_public_keys: [ ]
+
+    - name: Toon de publieke sleutels
+      debug:
+        var: all_public_keys
+
+    - name: Voeg publieke sleutels toe aan authorized_keys
+      ansible.builtin.lineinfile:
+        path: "/home/{{ item.0.username }}/.ssh/authorized_keys"
+        line: "{{ item.1 }}"
+        create: yes
+      loop: "{{ users | product(all_public_keys) | list }}"

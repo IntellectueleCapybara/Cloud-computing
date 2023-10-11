@@ -1,35 +1,161 @@
 
-- name: Maak gebruikers en genereer SSH-sleutels
-  hosts: your_servers
+###
+### de VMs starten
+###
+- name: VM starten op Proxmox 1
+  hosts: pm01
+  tasks:
+    - name: Start VM on pm01
+      shell: "qm status 100 | grep -q 'status: running' || qm start 100"
+
+- name: VM starten op Proxmox 2
+  hosts: pm02
+  tasks:
+    - name: Start VM on pm02
+      shell: "qm status 101 | grep -q 'status: running' || qm start 101"
+
+- name: VM starten op Proxmox 3
+  hosts: pm03
+  tasks:
+    - name: Start VM on pm03
+      shell: "qm status 102 | grep -q 'status: running' || qm start 102"
+
+###
+### de VMs wachten tot ze gestart zijn ### code op internet
+###
+
+- name: wachten op boot
+  hosts: localhost
+  gather_facts: no
   become: yes
-  vars:
-    users:
-      - username: numbero_uno
-        pubkey_file: numbero_uno.pub
-      - username: numbero_dos
-        pubkey_file: numbero_dos.pub
+  tasks:
+    - name: Wait for VMs to boot
+      local_action:
+        module: wait_for_connection
+        delay: 5
+        timeout: 300
+      with_items:
+        - "espocrmvm1"
+        - "espocrmvm2"
+        - "espocrmvm3"
+
+###
+### shared storage gebruiken voor meer opslag
+###
+- name: de VDA opslag gebruiken
+  hosts:
+    - espocrmvm1
+    - espocrmvm2
+    - espocrmvm3
+  become: yes
+  tasks:
+    - name: Maak het mount point
+      file:
+        path: /mnt/vda
+        state: directory
+
+    - name: Voeg de harde schijf toe aan /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        line: '/dev/vda /mnt/vda ext4 defaults 0 0'
+        state: present
+
+    - name: Mount alle bestandssystemen waarvan de fstab regels gelezen zijn
+      command:
+        cmd: mount -a
+
+###
+### high availability toevoegen aan de vms
+###
+
+- name: Configure HA for VMs
+  hosts: pm01
+  tasks:
+    - name: Enable HA for VMs
+      command: "ha-manager add 100 --state=enabled --type=vm"
+
+- name: Configure HA for VMs
+  hosts: pm01
+  tasks:
+    - name: Enable HA for VMs
+      command: "ha-manager add 101 --state=enabled --type=vm"
+
+- name: Configure HA for VMs
+  hosts: pm01
+  tasks:
+    - name: Enable HA for VMs
+      command: "ha-manager add 102 --state=enabled --type=vm"
+
+###
+### Twee keer per dag moet er een snapshot van de VM worden gemaakt.
+###
+
+- name: Create snapshot script on Proxmox hosts
+  hosts: pm01,pm02,pm03
+  become: yes
+  tasks:
+    - name: Create snapshot script
+      copy:
+        dest: "/root/snapshot_vms.sh"
+        content: |
+          #!/bin/bash
+          for vmid in 100 101 102; do
+            pct snapshot $vmid daily_snapshot
+          done
+        mode: 0755
+
+    - name: Create cron job for snapshotting VMs twice a day
+      cron:
+        name: "snapshot job"
+        minute: "0"
+        hour: "*/12"
+        job: "/root/snapshot_vms.sh"
+
+
+  ###
+  ### monitor server aanmaken
+  ###
+
+
+- name: EspoCRM VMs instellen
+  hosts:
+    - espocrmvm1
+    - espocrmvm2
+    - espocrmvm3
+  become: yes
 
   tasks:
-    - name: Maak gebruikers aan
-      user:
-        name: "{{ item.username }}"
-        createhome: yes
-      with_items: "{{ users }}"
-
-    - name: Genereer SSH-sleutels
-      openssh_keypair:
-        path: "/home/{{ item.username }}/.ssh/id_rsa"
-        state: present
-      with_items: "{{ users }}"
-      when: not ansible_filesystem.exists("/home/{{ item.username }}/.ssh/id_rsa")
-
-    - name: Voeg publieke sleutels toe aan authorized_keys
-      authorized_key:
-        user: "{{ item.username }}"
-        key: "{{ lookup('file', item.pubkey_file) }}"
-      with_items: "{{ users }}"
-
 
 ###
-### EspoCRM installatie
+### installeren van espocrm op de vms
 ###
+    - name: UFW - Allow HTTP on port http_port
+      ufw:
+        rule: allow
+        port: 80
+        proto: tcp
+
+    - name: monitor server toevoegen(netdata)
+      become: yes
+      ansible.builtin.shell: wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token OzRKNSi-wepAK1p2HXzvzWchzcdhOwRJBNCJWunz4F51RdSJAa92m3jeelVE2Wk5zeOeQlf4-mZO9Suv-JAsxReMna5MyY1iv7hS7yxtVw7sn9KqCJFPzfDvwbXa6ixGsQ4-agE --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001 --claim-url https://app.netdata.cloud
+
+    - name: Check if EspoCRM is installed
+      stat:
+        path: /path/to/espocrm
+      register: espocrm_dir
+
+    - name: Install espocrm on the VMs
+      shell: |
+        wget https://github.com/espocrm/espocrm-installer/releases/latest/download/install.sh
+        sudo bash install.sh -y --ssl --letsencrypt --domain=cloud-espocrm.com --clean
+      args:
+        chdir: /root
+      register: espocrm_install
+      when: not espocrm_dir.stat.exists
+
+    - debug:
+        var: espocrm_install.stdout_lines
+
+
+
+
