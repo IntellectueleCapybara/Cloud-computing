@@ -64,6 +64,10 @@
       command:
         cmd: mount -a
 
+    - name: schijf vergroten
+      command:
+        cmd: qm resize 9001 scsi0 6G
+
 ###
 ### high availability toevoegen aan de vms
 ###
