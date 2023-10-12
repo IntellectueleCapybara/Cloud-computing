@@ -77,13 +77,13 @@
       command: "ha-manager add 100 --state=enabled --type=vm"
 
 - name: Configure HA for VMs
-  hosts: pm01
+  hosts: pm02
   tasks:
     - name: Enable HA for VMs
       command: "ha-manager add 101 --state=enabled --type=vm"
 
 - name: Configure HA for VMs
-  hosts: pm01
+  hosts: pm03
   tasks:
     - name: Enable HA for VMs
       command: "ha-manager add 102 --state=enabled --type=vm"
@@ -139,7 +139,7 @@
 
     - name: monitor server toevoegen(netdata)
       become: yes
-      ansible.builtin.shell: wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token cq4nsbduN-QNt9aT1vVyLSvi3liuZLzE-AqioovC8UUR7bU2Q9g8RJgR9bn23pzJJkwnyh7ts1NeNXYe-cmym9f1kEGKJJQwz865sUdWnPYB0PJx4u8znaDypWIuzTEYZn7we8Q --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001 --claim-url https://app.netdata.cloud
+      ansible.builtin.shell: wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token OzRKNSi-wepAK1p2HXzvzWchzcdhOwRJBNCJWunz4F51RdSJAa92m3jeelVE2Wk5zeOeQlf4-mZO9Suv-JAsxReMna5MyY1iv7hS7yxtVw7sn9KqCJFPzfDvwbXa6ixGsQ4-agE --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001 --claim-url https://app.netdata.cloud
 
     - name: Check if EspoCRM is installed
       stat:
