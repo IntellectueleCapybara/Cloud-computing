@@ -259,9 +259,9 @@
         vmid: "{{ item.vmid }}"
         ip: "{{ item.ip }}"
       loop:
-        - { node: "pm01", vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.101" }
-        - { node: "pm02", vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.102" }
-        - { node: "pm03", vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.103" }
+        - { node: "pm01", vmid: 100, hostname: "espocrmvm1", ip: "172.16.39.100" }
+        - { node: "pm02", vmid: 101, hostname: "espocrmvm2", ip: "172.16.39.101" }
+        - { node: "pm03", vmid: 102, hostname: "espocrmvm3", ip: "172.16.39.102" }
 
     - name: VMs tevoegen aan hosts file
       lineinfile:
@@ -270,6 +270,6 @@
         state: present
       become: yes
       loop:
-        - { hostname: "espocrmvm1", ip: "172.16.39.101" }
-        - { hostname: "espocrmvm2", ip: "172.16.39.102" }
-        - { hostname: "espocrmvm3", ip: "172.16.39.103" }
+        - { hostname: "espocrmvm1", ip: "172.16.39.100" }
+        - { hostname: "espocrmvm2", ip: "172.16.39.101" }
+        - { hostname: "espocrmvm3", ip: "172.16.39.102" }
