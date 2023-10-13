@@ -124,7 +124,10 @@
     - espocrmvm2
     - espocrmvm3
   become: yes
-
+  vars_prompt:
+    - name: admin_password
+      prompt: "Enter the admin password:"
+      private: true
   tasks:
 
 ###
@@ -146,12 +149,11 @@
 
     - name: Install espocrm on the VMs(dit kan even duren.....)
       shell: |
-        wget https://github.com/espocrm/espocrm-installer/releases/latest/download/install.sh
-        sudo bash install.sh -y --ssl --letsencrypt --domain=cloud-espocrm.com --clean
-      args:
-        chdir: /root
+        sudo wget https://github.com/espocrm/espocrm-installer/releases/latest/download/install.sh
+        sudo bash install.sh -y --adminUsername=geenboombaas --adminPassword={{ admin_password }} --clean
       register: espocrm_install
       when: not espocrm_dir.stat.exists
+
 
     - debug:
         var: espocrm_install.stdout_lines
