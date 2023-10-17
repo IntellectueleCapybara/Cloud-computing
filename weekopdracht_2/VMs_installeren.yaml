@@ -222,9 +222,9 @@
   tasks:
     - name: toevoegen....
       shell: |  
-        qm set 100 --virtio0 shared_storage:50,format=qcow2
-        qm set 100 --ipconfig0 ip=172.16.39.200/16,gw=172.16.0.1
-        qm set 100 --sshkey /root/.ssh/id_rsa.pub
+        qm set 200 --virtio0 shared_storage:50,format=qcow2
+        qm set 200 --ipconfig0 ip=172.16.39.200/16,gw=172.16.0.1
+        qm set 200 --sshkey /root/.ssh/id_rsa.pub
 
 - name: Voeg shared_storage toe aan Proxmox02
   hosts:
@@ -232,9 +232,9 @@
   tasks:
     - name: toevoegen....
       shell: |
-        qm set 101 --virtio0 shared_storage:50,format=qcow2
-        qm set 101 --ipconfig0 ip=172.16.39.201/16,gw=172.16.0.1
-        qm set 101 --sshkey /root/.ssh/id_rsa.pub
+        qm set 201 --virtio0 shared_storage:50,format=qcow2
+        qm set 201 --ipconfig0 ip=172.16.39.201/16,gw=172.16.0.1
+        qm set 201 --sshkey /root/.ssh/id_rsa.pub
 
 - name: Voeg shared_storage toe aan Proxmox03
   hosts:
@@ -242,9 +242,9 @@
   tasks:
     - name: toevoegen....
       shell: |
-        qm set 102 --virtio0 shared_storage:50,format=qcow2
-        qm set 102 --ipconfig0 ip=172.16.39.202/16,gw=172.16.0.1
-        qm set 102 --sshkey /root/.ssh/id_rsa.pub
+        qm set 202 --virtio0 shared_storage:50,format=qcow2
+        qm set 202 --ipconfig0 ip=172.16.39.202/16,gw=172.16.0.1
+        qm set 202 --sshkey /root/.ssh/id_rsa.pub
   
 
 
@@ -264,9 +264,9 @@
         vmid: "{{ item.vmid }}"
         ip: "{{ item.ip }}"
       loop:
-        - { node: "pm01", vmid: 100, hostname: "DockerVM1", ip: "172.16.39.200" }
-        - { node: "pm02", vmid: 101, hostname: "DockerVM2", ip: "172.16.39.201" }
-        - { node: "pm03", vmid: 102, hostname: "DockerVM3", ip: "172.16.39.202" }
+        - { node: "pm01", vmid: 200, hostname: "DockerVM1", ip: "172.16.39.200" }
+        - { node: "pm02", vmid: 201, hostname: "DockerVM2", ip: "172.16.39.201" }
+        - { node: "pm03", vmid: 202, hostname: "DockerVM3", ip: "172.16.39.202" }
 
     - name: VMs tevoegen aan hosts file
       lineinfile:
