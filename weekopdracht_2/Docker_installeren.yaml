@@ -1,0 +1,85 @@
+###
+### docker installatie en container setup
+###
+
+- name: Voeg CIFS gedeelde opslag toe aan Proxmox
+  hosts:
+    - DockerVM1
+    - DockerVM2
+    - DockerVM3
+  tasks:
+
+    - name: Update apt cache
+      apt: update_cache=yes
+
+    - name: Install required packages
+      apt: name={{ item }} state=latest
+      loop:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+
+    - name: Add Docker's official GPG key
+      shell: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+    - name: Verify key fingerprint
+      shell: apt-key fingerprint 0EBFCD88
+
+    - name: Add Docker repository
+      shell: add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+    - name: Update apt cache (again)
+      apt: update_cache=yes
+
+    - name: Install Docker CE
+      apt: name=docker-ce state=latest
+
+    - name: Install Docker Compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/1.24.0/docker-compose-`uname -s`-`uname -m`
+        dest: /usr/local/bin/docker-compose
+        mode: '0755'
+
+    - name: Check Docker Compose version
+      command: docker-compose --version
+
+    # Les 7
+    - name: Create a directory for the Dockerfile
+      file:
+        path: /home/ubuntu/dockerfile_dir
+        state: directory
+
+    - name: Create a Dockerfile
+      copy:
+        dest: "/home/ubuntu/dockerfile_dir/Dockerfile"
+        content: |
+          # Use an official Python runtime as a parent image
+          FROM python:2.7-slim
+          
+          # Set the working directory in the container to /app
+          WORKDIR /app
+          
+          # Copy the current directory contents into the container at /app
+          ADD . /app
+          
+          # Install any needed packages specified in requirements.txt
+          RUN pip install --trusted-host pypi.python.org -r requirements.txt
+          
+          # Make port 80 available to the world outside this container
+          EXPOSE 80
+          
+          # Define environment variable
+          ENV NAME World
+          
+          # Run app.py when the container launches
+          CMD ["python", "app.py"]
+
+    - name: Build a Docker image using the Dockerfile
+      command:
+        chdir: /home/ubuntu/dockerfile_dir/
+        cmd: docker build --tag=my-python-app .
+
+    - name: Run the Docker container from the image we just built
+      command:
+        cmd: docker run --name=my-running-app --detach=true my-python-app
