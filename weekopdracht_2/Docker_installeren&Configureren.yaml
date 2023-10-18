@@ -121,3 +121,5 @@
 ### eventueel docker commands script voor les 10
 ###
 
+    - name: Run the Docker commands script
+      script: script.sh
