@@ -83,3 +83,41 @@
     - name: Run the Docker container from the image we just built
       command:
         cmd: docker run --name=my-running-app --detach=true my-python-app
+
+###
+### Docker Swarm aanmaken en samenwerken als een swarm
+###
+
+- hosts:
+    - DockerVM1
+    - DockerVM2
+    - DockerVM3
+  become: yes
+  tasks:
+    - name: Initialize Docker Swarm on the first node
+      command: docker swarm init --advertise-addr 172.16.39.103
+      register: swarm_init
+      run_once: true
+
+    - name: Get the worker join token from the first node
+      command: docker swarm join-token worker -q
+      register: worker_token
+      run_once: true
+      delegate_to: DockerVM1
+
+    - name: Join the other nodes to the swarm as workers
+      command: docker swarm join --token {{ worker_token.stdout }} 172.16.39.103:2377
+      when: inventory_hostname != 'DockerVM1'
+
+    - name: Promote the worker nodes to managers
+      command: docker node promote {{ inventory_hostname }}
+      delegate_to: DockerVM1
+
+    - name: Check the status of the swarm
+      command: docker node ls
+      delegate_to: DockerVM1
+
+###
+### eventueel docker commands script voor les 10
+###
+
