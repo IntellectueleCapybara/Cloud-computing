@@ -39,6 +39,11 @@
   hosts:
     - pm01
   tasks:
+    - name: Check if the Proxmox template already exists
+      shell: qm list | grep 8999
+      register: template_check
+      ignore_errors: yes
+
     - name: Create a Proxmox template (dit kan even duren....)
       shell: |
         wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
@@ -52,12 +57,18 @@
         qm set 8999 --agent enabled=1
         qm resize 9001 scsi0 6G
         qm template 8999
+      when: template_check.rc != 0  # als de template al bestaat, dan wordt de template niet opnieuw aangemaakt
 
 
 - name: Voeg Proxmox template toe aan Proxmox02
   hosts:
     - pm02
   tasks:
+    - name: Check if the Proxmox template already exists
+      shell: qm list | grep 9000
+      register: template_check
+      ignore_errors: yes
+
     - name: Create a Proxmox template (dit kan even duren....)
       shell: |
         wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
@@ -71,11 +82,17 @@
         qm set 9000 --agent enabled=1
         qm resize 9001 scsi0 6G
         qm template 9000
+      when: template_check.rc != 0  # als de template al bestaat, dan wordt de template niet opnieuw aangemaakt
 
 - name: Voeg Proxmox template toe aan Proxmox03
   hosts:
     - pm03
   tasks:
+    - name: Check if the Proxmox template already exists
+      shell: qm list | grep 9001
+      register: template_check
+      ignore_errors: yes
+
     - name: Create a Proxmox template (dit kan even duren....)
       shell: |
         wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
@@ -89,6 +106,7 @@
         qm set 9001 --agent enabled=1
         qm resize 9001 scsi0 6G
         qm template 9001
+      when: template_check.rc != 0  # als de template al bestaat, dan wordt de template niet opnieuw aangemaakt
 
 
 
