@@ -231,7 +231,7 @@
         agent: '1'
         timeout: 300
       loop:
-        - { template: "ubuntu-2004-cloudinit-template3", vmid: 202, hostname: "DockerVM1", ip: "172.16.39.202" }
+        - { template: "ubuntu-2004-cloudinit-template3", vmid: 202, hostname: "DockerVM3", ip: "172.16.39.202" }
 
 
 - name: Voeg shared_storage toe aan Proxmox01
