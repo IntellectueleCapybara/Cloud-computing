@@ -288,7 +288,7 @@
 
     - name: VMs tevoegen aan hosts file
       lineinfile:
-        path: /home/geenboom1/ansible_wordpress_project/hosts
+        path: /home/geenboom1/ansible_wordpress_project/Week2/hosts
         line: "\n[{{ item.hostname }}]\n{{ item.ip }}"
         state: present
       become: yes
