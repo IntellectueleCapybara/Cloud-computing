@@ -266,7 +266,7 @@
     - name: VMs tevoegen aan hosts file
       lineinfile:
         path: /home/geenboom1/ansible_wordpress_project/hosts
-        line: "\n[{{ item.hostname }}]\n{{ item.ip }}"
+        line: "\n[{{ item.hostname }}]\n{{ item.ip }} ansible_user=ubuntu ansible_ssh_private_key_file=/root/.ssh/id_rsa"
         state: present
       become: yes
       loop:
