@@ -28,7 +28,7 @@
       command:
         cmd: mount -a
 
-- name: Voeg CIFS gedeelde opslag toe aan Proxmox
+- name: Docker installeren
   hosts:
     - DockerVM1
     - DockerVM2
