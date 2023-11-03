@@ -336,3 +336,25 @@
         - "DockerVM1"
         - "DockerVM2"
         - "DockerVM3"
+
+- name: de VDA opslag gebruiken
+  hosts:
+    - espocrmvm1
+    - espocrmvm2
+    - espocrmvm3
+  become: yes
+  tasks:
+    - name: Maak het mount point
+      file:
+        path: /mnt/vda
+        state: directory
+
+    - name: Voeg de harde schijf toe aan /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        line: '/dev/vda /mnt/vda ext4 defaults 0 0'
+        state: present
+
+    - name: Mount alle bestandssystemen waarvan de fstab regels gelezen zijn
+      command:
+        cmd: mount -a
