@@ -1,10 +1,10 @@
-apiVersion: apps/v2
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-  namespace: { { .Release.Namespace } }
+  namespace: database
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: mysql
@@ -15,10 +15,10 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: mysql:5.7
+          image: {{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}
           env:
-            - name: MYSQL_ROOT_PASSWORD
-              value: {{ .Values.mysqlRootPassword }}
+              - name: MYSQL_ROOT_PASSWORD
+                value: {{ .Values.mysql.env.MYSQL_ROOT_PASSWORD }}
           volumeMounts:
             - name: db-storage
               mountPath: /var/lib/mysql
@@ -31,9 +31,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: adminer
-  namespace: {{ .Release.Namespace }}
+  namespace: database
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: adminer
@@ -44,6 +44,6 @@ spec:
     spec:
       containers:
         - name: adminer
-          image: adminer
+          image: {{ .Values.adminer.image.repository }}:{{ .Values.adminer.image.tag }}
           ports:
-            - containerPort: 8080
+              - containerPort: {{ .Values.adminer.ports.containerPort }}

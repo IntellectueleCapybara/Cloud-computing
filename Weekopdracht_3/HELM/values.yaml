@@ -16,7 +16,7 @@ adminer:
     repository: adminer
     tag: latest
   ports:
-    - containerPort: 8080
+    containerPort: 8080
 
 pvc:
   storage: 1Gi
