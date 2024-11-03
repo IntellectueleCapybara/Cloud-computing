@@ -1,14 +1,13 @@
-# apache-server/templates/service.yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "apache-server.fullname" . }}
-  labels:
-    {{- include "apache-server.labels" . | nindent 4 }}
+  name: {{ .Values.apache.service }}
+  namespace: {{ .Values.apache.namespace }}
 spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: 80
   selector:
-    {{- include "apache-server.selectorLabels" . | nindent 4 }}
+    app: {{ .Values.apache.app }}
+  ports:
+    - protocol: {{ .Values.apache.protocol }}
+      port: {{ .Values.apache.port }}
+      targetPort: {{ .Values.apache.targetPort }}
+  type: ClusterIP

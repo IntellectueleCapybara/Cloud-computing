@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.apache.config }}
+  namespace: {{ .Values.apache.namespace }}
+data:
+  index.html: |
+    {{ .Values.apache.message }}

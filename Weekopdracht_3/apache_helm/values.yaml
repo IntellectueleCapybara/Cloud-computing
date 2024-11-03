@@ -1,13 +1,20 @@
-# apache-server/values.yaml
-replicaCount: 2  # Number of replicas
-
-image:
-  repository: httpd  # Docker image repository
-  tag: "2.4"  # Docker image tag
-  pullPolicy: IfNotPresent  # Image pull policy
-
-service:
-  type: ClusterIP  # Service type
-  port: 80  # Service port
-
-env: development  # Environment variable
+apache:
+  config: apache-config
+  namespace: default
+  message: "<h1>Hello, World!</h1>"
+  name: apache-deployment
+  app: apache-app
+  replicas: 2
+  image: httpd:2.4
+  port: 80
+  service: apache-service
+  protocol: TCP
+  targetPort: 80
+  ingress:
+    enabled: true
+    host: example.com
+    port: 80
+  networkPolicy:
+    name: apache-network-policy
+    protocol: TCP
+    port: 80

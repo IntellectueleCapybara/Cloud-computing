@@ -1,26 +1,29 @@
-# apache-server/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "apache-server.fullname" . }}
+  name: {{ .Values.apache.name }}
+  namespace: {{ .Values.apache.namespace }}
   labels:
-    {{- include "apache-server.labels" . | nindent 4 }}
+    app: {{ .Values.apache.app }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.apache.replicas }}
   selector:
     matchLabels:
-      {{- include "apache-server.selectorLabels" . | nindent 6 }}
+      app: {{ .Values.apache.app }}
   template:
     metadata:
       labels:
-        {{- include "apache-server.selectorLabels" . | nindent 8 }}
+        app: {{ .Values.apache.app }}
     spec:
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+        - name: {{ .Values.apache.app }}
+          image: {{ .Values.apache.image }}
           ports:
-            - containerPort: 80
-          env:
-            - name: ENVIRONMENT
-              value: "{{ .Values.env }}"
+            - containerPort: {{ .Values.apache.port }}
+          volumeMounts:
+            - mountPath: "/usr/local/apache2/htdocs/"
+              name: content-volume
+      volumes:
+        - name: content-volume
+          configMap:
+            name: {{ .Values.apache.config }}
