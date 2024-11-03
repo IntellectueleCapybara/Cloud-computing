@@ -1,0 +1,14 @@
+# apache-server/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "apache-server.fullname" . }}
+  labels:
+    {{- include "apache-server.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: 80
+  selector:
+    {{- include "apache-server.selectorLabels" . | nindent 4 }}

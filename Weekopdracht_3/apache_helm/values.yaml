@@ -1,0 +1,13 @@
+# apache-server/values.yaml
+replicaCount: 2  # Number of replicas
+
+image:
+  repository: httpd  # Docker image repository
+  tag: "2.4"  # Docker image tag
+  pullPolicy: IfNotPresent  # Image pull policy
+
+service:
+  type: ClusterIP  # Service type
+  port: 80  # Service port
+
+env: development  # Environment variable
