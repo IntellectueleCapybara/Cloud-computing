@@ -1,8 +1,13 @@
+# Weekopdracht_3/HELM/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-  namespace: database
+  labels:
+    app.kubernetes.io/managed-by: "Helm"  # Required label
+  annotations:
+    meta.helm.sh/release-name: "{{ .Release.Name }}"  # Required annotation
+    meta.helm.sh/release-namespace: "{{ .Release.Namespace }}"  # Required annotation
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -15,35 +20,7 @@ spec:
     spec:
       containers:
         - name: mysql
-          image: {{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
           env:
-              - name: MYSQL_ROOT_PASSWORD
-                value: {{ .Values.mysql.env.MYSQL_ROOT_PASSWORD }}
-          volumeMounts:
-            - name: db-storage
-              mountPath: /var/lib/mysql
-      volumes:
-        - name: db-storage
-          persistentVolumeClaim:
-            claimName: db-pvc
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: adminer
-  namespace: database
-spec:
-  replicas: {{ .Values.replicaCount }}
-  selector:
-    matchLabels:
-      app: adminer
-  template:
-    metadata:
-      labels:
-        app: adminer
-    spec:
-      containers:
-        - name: adminer
-          image: {{ .Values.adminer.image.repository }}:{{ .Values.adminer.image.tag }}
-          ports:
-              - containerPort: {{ .Values.adminer.ports.containerPort }}
+            - name: MYSQL_ROOT_PASSWORD
+              value: "{{ .Values.mysql.env.MYSQL_ROOT_PASSWORD }}"
