@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
-  namespace: database
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
   selector:
@@ -18,7 +18,7 @@ spec:
           image: mysql:5.7
           env:
             - name: MYSQL_ROOT_PASSWORD
-              value: yourpassword
+              value: {{ .Values.mysqlRootPassword }}
           volumeMounts:
             - name: db-storage
               mountPath: /var/lib/mysql
@@ -31,7 +31,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: adminer
-  namespace: database
+  namespace: {{ .Release.Namespace }}
 spec:
   replicas: 1
   selector:
@@ -47,6 +47,3 @@ spec:
           image: adminer
           ports:
             - containerPort: 8080
-
-#voor de service
-
