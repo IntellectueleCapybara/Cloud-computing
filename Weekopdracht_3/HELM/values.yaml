@@ -1,7 +1,4 @@
-# Default values for database-chart.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
+# Weekopdracht_3/HELM/values.yaml
 replicaCount: 1
 
 mysql:

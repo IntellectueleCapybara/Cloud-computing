@@ -1,20 +1,10 @@
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: db-pv
-spec:
-  capacity:
-    storage: {{ .Values.pvc.storage }}
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data/db"
+# Weekopdracht_3/HELM/templates/pvc.yaml
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: db-pvc
-  namespace: database
+  namespace: database2
 spec:
   accessModes:
     - ReadWriteOnce

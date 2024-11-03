@@ -1,0 +1,17 @@
+# pv.yaml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: db-pv
+  labels:
+    app.kubernetes.io/managed-by: "Helm"  # Required label
+  annotations:
+    meta.helm.sh/release-name: "mijn-database2"  # Required annotation
+    meta.helm.sh/release-namespace: "database2"  # Required annotation
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data/db"
