@@ -9,7 +9,7 @@ mysql:
     repository: mysql
     tag: 5.7
   env:
-    MYSQL_ROOT_PASSWORD: yourpassword
+    MYSQL_ROOT_PASSWORD: master
 
 adminer:
   image:
