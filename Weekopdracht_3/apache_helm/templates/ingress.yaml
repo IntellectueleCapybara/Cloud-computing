@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.apache.ingress }}
+  name: {{ .Values.ingress.name }}  # Use the correct path to the name
   namespace: {{ .Values.apache.namespace }}
 spec:
   rules:

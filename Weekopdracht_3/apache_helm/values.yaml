@@ -1,20 +1,22 @@
 apache:
-  config: apache-config
-  namespace: default
-  message: "<h1>Hello, World!</h1>"
-  name: apache-deployment
-  app: apache-app
   replicas: 2
-  image: httpd:2.4
-  port: 80
-  service: apache-service
+  app: "apache-server"
+  name: "apache-server"
+  namespace: "apache"
+  image: "httpd:latest"
+  config: "apache-server-config"
+  service: "apache-server-service"
   protocol: TCP
+  port: 80
   targetPort: 80
-  ingress:
-    enabled: true
-    host: example.com
-    port: 80
   networkPolicy:
-    name: apache-network-policy
+    name: "apache-ingress-policy"
     protocol: TCP
     port: 80
+  message: "<h1>Welkom bij de Apache server!</h1>"
+
+ingress:
+  enabled: true
+  host: "apache.local"
+  port: 80
+  name: "apache-server-ingress"  # Add this line
