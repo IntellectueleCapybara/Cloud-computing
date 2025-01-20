@@ -145,7 +145,16 @@
         proto: tcp
 
     - name: monitor server toevoegen(netdata)
-      ansible.builtin.shell: wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token -Fg9Y4lDcJqyPAThFrhjciDaber8hcyMV9dMnGnW_yLke5Nizj20JvXfuIZkkQYIIVqKJE_SxTvO3JQKzhc21z2oTHOVXnoRNOXtdmbQwDao7q2DqpTZElkryI0SesRgaBcUIKQ --claim-rooms 07aa6c7e-53f3-4ba3-a3b2-96ce6bf53001 --claim-url https://app.netdata.cloud
+      vars_prompt:
+        - name: claim_token
+          prompt: "Enter the Netdata claim token:"
+          private: true
+        - name: claim_rooms
+          prompt: "Enter the Netdata claim rooms:"
+          private: true
+      ansible.builtin.shell: |
+        wget -O /tmp/netdata-kickstart.sh https://my-netdata.io/kickstart.sh && \
+        sh /tmp/netdata-kickstart.sh --nightly-channel --claim-token {{ claim_token }} --claim-rooms {{ claim_rooms }} --claim-url https://app.netdata.cloud
 
     - name: Check if EspoCRM is installed
       stat:
