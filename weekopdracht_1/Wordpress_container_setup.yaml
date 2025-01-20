@@ -44,14 +44,18 @@
       register: shared_storage_check
       ignore_errors: yes
 
+    - name: Load CIFS credentials
+      include_vars:
+        file: cifs_credentials.yaml
+
     - name: Voer het pvesm commando uit om CIFS gedeelde opslag toe te voegen
-      command: pvesm add cifs shared_storage --server 172.16.0.100 --share 422422 --username student422422 --password "{{ cifs_password }}"
+      command: pvesm add cifs shared_storage --server 172.16.0.100 --share "{{ cifs_share }}" --username "{{ cifs_username }}" --password "{{ cifs_password }}"
       when: shared_storage_check.stdout == ""
 
     - name: Add entry to /etc/fstab for shared storage
       lineinfile:
         path: /etc/fstab
-        line: "//172.16.0.100/shared_storage /shared_storage cifs username=student422422,password={{ cifs_password }},rw 0 0"
+        line: "//172.16.0.100/shared_storage /shared_storage cifs username={{ cifs_username }},password={{ cifs_password }},rw 0 0"
         state: present
       when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
 

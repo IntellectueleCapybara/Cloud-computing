@@ -18,16 +18,20 @@
       register: shared_storage_check
       ignore_errors: yes
 
+    - name: Load CIFS credentials
+      include_vars:
+        file: cifs_credentials.yaml
+
     - name: Voer het pvesm commando uit om CIFS gedeelde opslag toe te voegen
-      command: pvesm add cifs shared_storage --server 172.16.0.100 --share 422422 --username student422422 --password "{{ cifs_password }}"
+      command: pvesm add cifs shared_storage --server "{{ cifs_server }}" --share "{{ cifs_share }}" --username "{{ cifs_username }}" --password "{{ cifs_password }}"
       when: shared_storage_check.stdout == ""
 
     - name: Add entry to /etc/fstab for shared storage
       lineinfile:
         path: /etc/fstab
-        line: "//172.16.0.100/shared_storage /shared_storage cifs username=student422422,password={{ cifs_password }},rw 0 0"
+        line: "//{{ cifs_server }}/{{ cifs_share }} /shared_storage cifs username={{ cifs_username }},password={{ cifs_password }},rw 0 0"
         state: present
-      when: "not (lookup('file', '/etc/fstab') | regex_search('172.16.0.100/shared_storage'))"
+      when: "not (lookup('file', '/etc/fstab') | regex_search('{{ cifs_server }}/{{ cifs_share }}'))"
 
 
 - name: Voeg Proxmox template toe aan Proxmox01
@@ -37,7 +41,7 @@
     - name: Create a Proxmox template (dit kan even duren....)
       shell: |
         wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-        virt-customize -a focal-server-cloudimg-amd64.img --install qemu-guest-agent --root-password password:422422
+        virt-customize -a focal-server-cloudimg-amd64.img --install qemu-guest-agent --root-password password:{{ cifs_password }}
         qm create 8999 --name "ubuntu-2004-cloudinit-template1" --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
         qm importdisk 8999 focal-server-cloudimg-amd64.img local-lvm
         qm set 8999 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-8999-disk-0
@@ -56,7 +60,7 @@
     - name: Create a Proxmox template (dit kan even duren....)
       shell: |
         wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-        virt-customize -a focal-server-cloudimg-amd64.img --install qemu-guest-agent --root-password password:422422
+        virt-customize -a focal-server-cloudimg-amd64.img --install qemu-guest-agent --root-password password:{{ cifs_password }}
         qm create 9000 --name "ubuntu-2004-cloudinit-template2" --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
         qm importdisk 9000 focal-server-cloudimg-amd64.img local-lvm
         qm set 9000 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-9000-disk-0
@@ -74,7 +78,7 @@
     - name: Create a Proxmox template (dit kan even duren....)
       shell: |
         wget https://cloud-images.ubuntu.com/focal/current/focal-server-cloudimg-amd64.img
-        virt-customize -a focal-server-cloudimg-amd64.img --install qemu-guest-agent --root-password password:422422
+        virt-customize -a focal-server-cloudimg-amd64.img --install qemu-guest-agent --root-password password:{{ cifs_password }}
         qm create 9001 --name "ubuntu-2004-cloudinit-template3" --memory 2048 --cores 2 --net0 virtio,bridge=vmbr0
         qm importdisk 9001 focal-server-cloudimg-amd64.img local-lvm
         qm set 9001 --scsihw virtio-scsi-pci --scsi0 local-lvm:vm-9001-disk-0
@@ -84,8 +88,6 @@
         qm set 9001 --agent enabled=1
         qm resize 9001 scsi0 6G
         qm template 9001
-
-
 
 
 - name: Automate EspoCRM Deployment
@@ -216,7 +218,7 @@
     - pm01
   tasks:
     - name: toevoegen....
-      shell: |  
+      shell: |
         qm set 100 --virtio0 shared_storage:50,format=qcow2
         qm set 100 --ipconfig0 ip=172.16.39.100/16,gw=172.16.0.1
         qm set 100 --sshkey /root/.ssh/id_rsa.pub
@@ -240,7 +242,7 @@
         qm set 102 --virtio0 shared_storage:50,format=qcow2
         qm set 102 --ipconfig0 ip=172.16.39.102/16,gw=172.16.0.1
         qm set 102 --sshkey /root/.ssh/id_rsa.pub
-  
+
 
 
     ###

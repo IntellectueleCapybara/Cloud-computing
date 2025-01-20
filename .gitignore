@@ -1,0 +1,7 @@
+# Ignore CIFS credentials file
+weekopdracht_1/cifs_credentials.yaml
+weekopdracht_2/cifs_credentials.yaml
+
+# Ignore hosts file
+/home/geenboom1/ansible_wordpress_project/hosts
+/home/geenboom1/ansible_wordpress_project/Week2/hosts
