@@ -1,0 +1,22 @@
+apache:
+  replicas: 2
+  app: "apache-server"
+  name: "apache-server"
+  namespace: "apache"
+  image: "httpd:latest"
+  config: "apache-server-config"
+  service: "apache-server-service"
+  protocol: TCP
+  port: 80
+  targetPort: 80
+  networkPolicy:
+    name: "apache-ingress-policy"
+    protocol: TCP
+    port: 80
+  message: "<h1>Welkom bij de Apache server!</h1>"
+
+ingress:
+  enabled: true
+  host: "apache.local"
+  port: 80
+  name: "apache-server-ingress"  # Add this line

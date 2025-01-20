@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.apache.name }}
+  namespace: {{ .Values.apache.namespace }}
+  labels:
+    app: {{ .Values.apache.app }}
+spec:
+  replicas: {{ .Values.apache.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.apache.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.apache.app }}
+    spec:
+      containers:
+        - name: {{ .Values.apache.app }}
+          image: {{ .Values.apache.image }}
+          ports:
+            - containerPort: {{ .Values.apache.port }}
+          volumeMounts:
+            - mountPath: "/usr/local/apache2/htdocs/"
+              name: content-volume
+      volumes:
+        - name: content-volume
+          configMap:
+            name: {{ .Values.apache.config }}

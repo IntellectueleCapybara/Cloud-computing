@@ -102,7 +102,7 @@
   vars: #verander dit als je andere IPs hebt en andere nodenamen
     pm01: 172.16.39.70
     pm02: 172.16.39.71
-    pm03: 172.16.39.72
+    pm03: 172.16.39.72 #aanpassen naar de nieuwe ips
     node1: geenboom2
     node2: geenboom3
     node3: geenboom4

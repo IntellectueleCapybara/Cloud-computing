@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.apache.service }}
+  namespace: {{ .Values.apache.namespace }}
+spec:
+  selector:
+    app: {{ .Values.apache.app }}
+  ports:
+    - protocol: {{ .Values.apache.protocol }}
+      port: {{ .Values.apache.port }}
+      targetPort: {{ .Values.apache.targetPort }}
+  type: ClusterIP

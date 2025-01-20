@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Values.apache.networkPolicy.name }}
+  namespace: {{ .Values.apache.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Values.apache.app }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: {{ .Values.apache.networkPolicy.protocol }}
+          port: {{ .Values.apache.networkPolicy.port }}
